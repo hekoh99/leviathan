@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Leviathan — Final Blueprint v1.0</title>
+  <title>Leviathan — Final Blueprint v1.0 FROZEN</title>
   <style>
     :root {
       --bg: #09101e;
@@ -91,7 +91,7 @@
 </head>
 <body>
 <main>
-  <div class="eyebrow">Final system blueprint · v1.0</div>
+  <div class="eyebrow">Final system blueprint · v1.0 · FROZEN</div>
   <h1>LEVIATHAN</h1>
   <p class="tagline">Local-first, goal-driven, LLM-guided modular trading platform.</p>
   <p class="lead">
@@ -127,7 +127,7 @@
     <a href="#portfolio">11. Portfolio / Ledger</a>
     <a href="#evaluation">12. 평가 전략</a>
     <a href="#storage">13. 데이터 & 저장</a>
-    <a href="#runtime">14. Rust / Python / Runtime</a>
+    <a href="#runtime">14. Rust / Python / Service Boundary</a>
     <a href="#cli">15. CLI</a>
     <a href="#scheduler">16. Scheduler / Decision Cadence</a>
     <a href="#reliability">17. 운영 안정성 / 보안 / 재해복구</a>
@@ -193,6 +193,10 @@ Next Decision Cycle</code></pre>
     <div class="card">
       <h3><span class="badge b-core">CORE</span>Broker-independent core</h3>
       <p>Strategy, Portfolio, Risk는 KIS/Hana를 모른다. broker-specific 인증·주문 포맷은 adapter 내부에만 존재한다.</p>
+    </div>
+    <div class="card">
+      <h3><span class="badge b-core">CORE</span>Intelligence service is stateless</h3>
+      <p>Python intelligence service는 상태를 소유하지 않는다. Request → compute → Response만 수행하며 DB에 쓰지 않고 broker를 호출하지 않는다.</p>
     </div>
   </div>
 
@@ -414,8 +418,7 @@ Outputs:
     </tbody>
   </table>
   <p>
-    ModelRouter는 실제 모델명을 domain code에서 숨긴다. <code>TaskType</code> → provider/model mapping을
-    config로 관리하며, 비용·latency·parse failure rate를 함께 기록한다.
+    ModelRouter는 실제 모델명을 domain code에서 숨긴다. <strong><code>core/config/models.toml</code>이 application-level model routing policy의 단일 source of truth</strong>이며, <code>TaskType</code>별 tier/provider/model, retry·budget 관련 정책을 관리한다. Rust core가 이를 검증해 intelligence request에 필요한 policy를 전달하고, Python의 <code>model_router</code>는 별도의 영속 설정을 소유하지 않은 채 해당 policy에 따라 provider 호출과 내부 pipeline을 실행한다. 비용·latency·parse failure rate는 실행 결과와 함께 기록한다.
   </p>
 
   <h2 id="grounding">9. Grounding & Validation</h2>
@@ -783,63 +786,182 @@ PostgreSQL
     analytical store 또는 PostgreSQL implementation을 추가한다.
     데이터베이스 선택이 core trading domain을 오염시키지 않게 한다.
   </div>
-<h2 id="runtime">14. 기술 스택 / Runtime</h2>
+<h2 id="runtime">14. 기술 스택 / Service Boundary</h2>
   <table>
     <thead><tr><th>영역</th><th>기술</th><th>역할</th></tr></thead>
     <tbody>
       <tr><td>Core domain</td><td>Rust</td><td>portfolio, risk, ledger, execution, scheduler, broker abstraction</td></tr>
-      <tr><td>Async / HTTP</td><td>Tokio, Reqwest</td><td>market/broker API, scheduler, async jobs</td></tr>
+      <tr><td>Async / HTTP client</td><td>Tokio, Reqwest</td><td>market/broker API, intelligence service 호출, scheduler</td></tr>
       <tr><td>CLI</td><td>Clap</td><td>interactive commands and operations</td></tr>
       <tr><td>Serialization</td><td>Serde</td><td>domain/event/config schema</td></tr>
+      <tr><td>Schema generation</td><td>schemars (Rust)</td><td><code>leviathan-contracts</code> DTO에서 JSON Schema 생성. 서비스 계약의 단일 source of truth.</td></tr>
       <tr><td>Operational DB</td><td>SQLite + SQLx</td><td>ledger, decisions, risk, broker state, moderate market data</td></tr>
       <tr><td>Future analytical store</td><td>DuckDB + Parquet (optional)</td><td>대규모 history/factor scan이 SQLite 운영 workload를 방해할 때만 도입</td></tr>
       <tr><td>Logging</td><td>tracing</td><td>structured logs / auditability</td></tr>
-      <tr><td>LLM / research</td><td>Python</td><td>model routing, prompts, data analysis, reports</td></tr>
-      <tr><td>Python schema</td><td>Pydantic</td><td>LLM structured output validation</td></tr>
+      <tr><td>Intelligence service</td><td>Python + FastAPI</td><td>model routing, prompts, research, screening, grounding, portfolio signal 계산</td></tr>
+      <tr><td>Service transport</td><td>Uvicorn, Unix domain socket</td><td>Rust ↔ Python. TCP 포트를 열지 않는다.</td></tr>
+      <tr><td>Python schema</td><td>Pydantic (코드 생성됨)</td><td>schemars가 생성한 JSON Schema에서 자동 생성, 수기 작성 금지</td></tr>
       <tr><td>Quant</td><td>pandas / numpy</td><td>screening, statistics, Monte Carlo prototype</td></tr>
-      <tr><td>IPC</td><td>subprocess JSON → Unix socket later</td><td>Rust ↔ Python</td></tr>
       <tr><td>OS</td><td>Linux</td><td>local-only initial runtime; systemd optional</td></tr>
     </tbody>
   </table>
 
-  <h3>Repository</h3>
+  <h3>14.1 Repository 구조</h3>
+  <p>
+    Rust core와 Python intelligence service는 별도 레포가 아니라 하나의 모노레포 안에서
+    최상위 디렉터리로 분리한다. 두 서비스는 이미 언어와 프로세스 경계로 격리되어 있으므로
+    레포를 나눠도 추가로 얻는 격리는 없고, 대신 스키마 변경이 두 레포에 걸쳐 커밋되면서
+    버전이 어긋날 위험만 생긴다. intelligence를 실제로 별도 머신(예: GPU 호스트)에
+    분리 배포해야 하는 시점이 오면 그때 <code>git subtree split</code>로 분리한다 —
+    반대 방향(레포 재통합)보다 이 방향이 항상 싸다.
+  </p>
   <pre><code>leviathan/
-├─ Cargo.toml
-├─ config/
-│  ├─ default.toml
-│  ├─ models.toml
-│  ├─ risk.toml
-│  └─ brokers.toml
-├─ crates/
-│  ├─ leviathan-cli/
-│  ├─ leviathan-core/
-│  ├─ leviathan-goal/
-│  ├─ leviathan-portfolio/
-│  ├─ leviathan-risk/
-│  ├─ leviathan-execution/
-│  ├─ leviathan-broker/
-│  ├─ leviathan-broker-paper/
-│  ├─ leviathan-broker-kis/
-│  ├─ leviathan-data/
-│  ├─ leviathan-storage/
-│  └─ leviathan-artifacts/
-├─ python/
+├─ core/                                 # Rust workspace
+│  ├─ Cargo.toml
+│  ├─ crates/
+│  │  ├─ leviathan-cli/
+│  │  ├─ leviathan-domain/               # order/fill/position/goal 등 핵심 도메인 타입
+│  │  ├─ leviathan-contracts/            # Rust ↔ Python API DTO
+│  │  ├─ leviathan-goal/                 # Goal Feasibility Engine(Monte Carlo numeric result), glide path, progress deviation 등 숫자 및 수치
+│  │  ├─ leviathan-portfolio/
+│  │  ├─ leviathan-risk/
+│  │  ├─ leviathan-execution/
+│  │  ├─ leviathan-broker/               # Broker trait
+│  │  ├─ leviathan-broker-paper/
+│  │  ├─ leviathan-broker-kis/
+│  │  ├─ leviathan-data/                 # market data ingestion
+│  │  ├─ leviathan-storage/              # SQLite/SQLx repository
+│  │  ├─ leviathan-artifacts/            # content-addressed artifact store
+│  │  └─ leviathan-intelligence-client/  # intelligence service HTTP client
+│  ├─ migrations/
+│  └─ config/
+│     ├─ default.toml
+│     ├─ models.toml
+│     ├─ risk.toml
+│     └─ brokers.toml
+│
+├─ intelligence/                         # Python service
 │  ├─ pyproject.toml
-│  └─ leviathan_ai/
-│     ├─ router.py
-│     ├─ screening.py
-│     ├─ research.py
-│     ├─ grounding.py
-│     ├─ goal_analysis.py
-│     ├─ strategy.py
-│     ├─ eval.py
-│     ├─ reporting.py
-│     ├─ schemas.py
-│     └─ prompts/
-├─ migrations/
+│  ├─ src/
+│  │  └─ leviathan_ai/
+│  │     ├─ main.py                      # FastAPI app, UDS bind
+│  │     ├─ api/                         # 외부 API — 제품 단위 작업만 노출
+│  │     │  ├─ analyze_cycle.py
+│  │     │  ├─ explain_goal.py
+│  │     │  ├─ generate_report.py
+│  │     │  └─ health.py
+│  │     ├─ model_router/                # core가 전달한 model policy 적용 + provider 호출 + 내부 pipeline 조율
+│  │     ├─ research/
+│  │     ├─ screening/
+│  │     ├─ grounding/
+│  │     ├─ strategy/
+│  │     ├─ goal/                        # 결과 설명, alternative scenario narration, goal feasibility report 등 설명
+│  │     ├─ reporting/
+│  │     ├─ eval/
+│  │     └─ schemas/
+│  │        └─ generated/                # codegen 산출물. 절대 직접 수정하지 않음.
+│  ├─ prompts/
+│  └─ tests/
+│
+├─ schemas/                              # Rust가 소유하는 단일 스키마 source of truth
+│  └─ generated/                         # schemars 산출물 (core가 write, intelligence는 read-only 소비)
+│
+├─ evals/                                # 저장된 forward decision context replay 세트
 ├─ reports/
-├─ data/
-└─ tests/</code></pre>
+├─ data/                                 # leviathan.db + artifacts/ (13장 참고)
+├─ tests/                                # cross-service 통합 테스트
+└─ xtask/                                # cargo xtask schema-gen 등 개발용 자동화</code></pre>
+
+  <h3>14.2 Schema Ownership — Rust가 단일 source of truth</h3>
+  <p>
+    Intelligence service가 주고받는 모든 request/response 타입은 <strong><code>leviathan-contracts</code>에서 먼저 정의</strong>한다. <code>leviathan-domain</code>의 내부 도메인 타입을 그대로 서비스 계약으로 노출하지 않는다. Python 쪽 Pydantic 모델은 손으로 작성하지 않고 contracts DTO에서 생성된 산출물이다.
+  </p>
+  <pre><code>leviathan-contracts DTO (Rust + schemars derive)
+      │  cargo xtask schema-gen
+      ▼
+schemas/generated/*.schema.json
+      │  datamodel-code-generator
+      ▼
+intelligence/src/leviathan_ai/schemas/generated/*.py  (Pydantic)</code></pre>
+  <p>
+    이 파이프라인은 CI에서 검증한다 — codegen을 다시 돌렸을 때 diff가 발생하면
+    (Python 쪽 스키마가 손으로 수정되었거나 재생성을 누락했다는 뜻이므로) 빌드를 실패시킨다.
+    스키마 불일치는 리뷰가 아니라 빌드가 잡는다.
+  </p>
+
+  <h3>14.3 Service Boundary — Rust ↔ Python</h3>
+  <p>
+    Intelligence service는 <strong>상태를 소유하지 않는다.</strong> 매 호출은
+    <code>Request → compute → Response</code> 한 사이클로 끝나며, DB에 쓰지 않고 broker를 호출하지 않으며
+    portfolio나 order를 직접 갱신하지 않는다. FastAPI로 구현한다고 해서 이 서비스가
+    trading system의 상태를 독립적으로 소유하는 microservice가 되는 것은 아니다 —
+    core가 매 사이클 호출하는 순수 계산 함수의 집합일 뿐이다.
+  </p>
+  <p>
+    외부에 노출하는 API는 <strong>제품 수준의 작업 단위</strong>로만 구성한다. news processing, regime,
+    ranking, grounding, conviction 같은 내부 파이프라인 단계를 각각 별도 엔드포인트로 쪼개 노출하지
+    않는다 — 그렇게 하면 Rust가 그 순서대로 호출해야 하므로 Python의 내부 LLM 파이프라인 구조를
+    알게 되고, 파이프라인이 바뀔 때마다 Rust 쪽 호출 순서도 같이 바뀌어야 한다.
+  </p>
+  <pre><code>외부 API (Rust가 아는 전부)
+intelligence/src/leviathan_ai/api/
+├─ analyze_cycle.py       POST /analyze-cycle
+├─ explain_goal.py        POST /explain-goal
+├─ generate_report.py     POST /generate-report
+└─ health.py              GET  /health
+
+내부 파이프라인 (Rust는 모름, model_router/가 조율)
+analyze_cycle
+   ↓
+news processing        cheap
+   ↓
+regime                 mid
+   ↓
+ranking                mid
+   ↓
+strong model            strong  (conviction / weight band)
+   ↓
+grounding
+   ↓
+response</code></pre>
+  <p>
+    8장 Model Routing 표의 태스크들은 더 이상 개별 라우트가 아니라, <code>model_router/</code>가
+    <code>analyze_cycle</code> 한 번의 호출 안에서 순서대로 조율하는 내부 단계다. Rust는 어떤 모델을
+    몇 단계 거쳐 이 결과가 나왔는지 알 필요가 없고, 알아서도 안 된다 — 알게 되는 순간 Rust core가
+    Python의 내부 구현에 의존하게 된다. <code>explain_goal</code>도 같은 원칙을 따른다. required CAGR, Monte Carlo 결과, glide path와 같은 수치적 결과는 <code>leviathan-goal</code>이 계산한 값을 request로 전달하며, Python은 이를 다시 계산하지 않는다. Intelligence service는 해당 결과의 설명·대안 narration만 생성해 반환한다.
+  </p>
+  <p>
+    Uvicorn은 TCP 포트가 아니라 <strong>Unix domain socket</strong>에 바인딩한다
+    (<code>uvicorn --uds /run/leviathan/intelligence.sock</code>). 로컬 프로세스 간 통신만 필요하므로
+    네트워크 attack surface를 아예 만들지 않는다. <code>analyze_cycle</code>의 request body가 그대로
+    <code>research_contexts</code>에 저장되는 artifact이므로, Eval Harness는 저장된 request를 다시
+    <code>analyze_cycle</code>에 재전송하는 것만으로 offline 재현을 수행한다 — 내부 파이프라인 단계를
+    개별적으로 재생할 필요가 없다.
+  </p>
+
+  <h3>14.4 Stateless 원칙의 강제 — 코드 리뷰가 아니라 구조로</h3>
+  <p>"Python이 DB/Broker를 직접 건드리지 않는다"는 관례가 아니라 세 겹으로 강제한다.</p>
+  <div class="grid">
+    <div class="card">
+      <h4>프로세스 격리</h4>
+      <p><code>leviathan.db</code> 경로와 broker credential은 intelligence 프로세스의
+      env var/config 어디에도 전달되지 않는다.</p>
+    </div>
+    <div class="card">
+      <h4>API 표면 설계</h4>
+      <p>모든 외부 API는 "분석해줘" 의미만 갖는다. "이걸 써줘/주문해줘" 같은 쓰기 의미의
+      엔드포인트는 설계상 존재하지 않는다.</p>
+    </div>
+    <div class="card">
+      <h4>CI guard</h4>
+      <p><code>intelligence/</code> 안에서 DB 드라이버·broker SDK import를 감지하면
+      빌드를 실패시키는 lint를 둔다.</p>
+    </div>
+  </div>
+  <p class="small">
+    메모리 내 caching(warm model client, embedding cache 등)은 예외로 허용한다 — trading system의
+    authoritative state가 아니라 순수 성능 최적화이기 때문이다.
+  </p>
 
   <h2 id="cli">15. CLI</h2>
   <pre><code>leviathan init
@@ -955,7 +1077,7 @@ scheduled_cycles_per_month
     <li><strong>Kill switch:</strong> paper 단계부터 구현하고 live에서는 신규 주문 차단 + 상태 snapshot 저장.</li>
     <li><strong>Secrets:</strong> API key는 repository에 저장하지 않고 OS keyring 또는 제한된 local secret store 사용.</li>
     <li><strong>Logging:</strong> broker credential과 token은 마스킹하고 decision/order audit trail은 보존.</li>
-    <li><strong>LLM isolation:</strong> LLM process에는 broker credential을 전달하지 않는다.</li>
+    <li><strong>LLM isolation:</strong> intelligence process에는 broker credential과 DB 파일 경로를 전달하지 않는다 (14.4 참고).</li>
     <li><strong>Automated backup:</strong> Phase 1부터 SQLite Online Backup API/.backup을 사용해 정기 snapshot을 생성한다.</li>
     <li><strong>Off-disk copy:</strong> 같은 디스크의 backup만으로는 재해복구가 되지 않으므로, live 전에는 최소 하나의 별도 물리 매체 또는 암호화된 원격 저장 위치에 backup을 복제한다.</li>
     <li><strong>Artifact backup:</strong> DB가 참조하는 immutable context/news artifacts도 DB backup과 함께 backup generation ID를 기준으로 보존한다.</li>
@@ -1134,7 +1256,7 @@ OrderIntent</code></pre>
   </div>
 
   <div class="footer">
-    Leviathan · Final Blueprint v1.0 · Rust + Python · Linux CLI · Paper-to-Live · Modular Broker / Model / Data Architecture
+    Leviathan · Final Blueprint v1.0 FROZEN · Rust + Python · Linux CLI · Paper-to-Live · Modular Broker / Model / Data Architecture
   </div>
 </main>
 </body>
