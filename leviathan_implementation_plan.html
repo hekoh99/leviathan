@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Leviathan — Implementation Plan v0.2</title>
+  <style>
+    :root {
+      --bg: #0b1020;
+      --panel: #121a2f;
+      --panel2: #17213a;
+      --text: #eef3ff;
+      --muted: #aab6d3;
+      --line: #2a385d;
+      --accent: #77a7ff;
+      --accent2: #9de2c7;
+      --warn: #ffd58a;
+      --danger: #ff9f9f;
+      --new: #cbb2ff;
+      --code: #09101f;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: linear-gradient(180deg, #09101e 0%, var(--bg) 40%, #0b1020 100%);
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+                   "Noto Sans KR", sans-serif;
+      line-height: 1.65;
+    }
+    main { max-width: 1120px; margin: 0 auto; padding: 56px 24px 96px; }
+    h1, h2, h3 { line-height: 1.2; }
+    h1 { font-size: clamp(2rem, 5.6vw, 3.6rem); margin: 0 0 12px; letter-spacing: -0.03em; }
+    h2 { margin-top: 56px; font-size: 1.7rem; border-bottom: 1px solid var(--line); padding-bottom: 12px; }
+    h3 { margin-top: 30px; font-size: 1.12rem; }
+    h4 { margin: 22px 0 8px; font-size: 0.98rem; color: #dce7ff; }
+    p, li { color: var(--muted); }
+    strong { color: var(--text); }
+    .eyebrow { color: var(--accent2); text-transform: uppercase; letter-spacing: .16em; font-size: .75rem; font-weight: 700; }
+    .lead { font-size: 1.12rem; max-width: 850px; color: #d8e2fb; }
+    .tagline { color: var(--accent); font-weight: 700; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin: 22px 0; }
+    .grid.two { grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); }
+    .card {
+      background: rgba(18, 26, 47, .88);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 12px 34px rgba(0,0,0,.16);
+    }
+    .card h3, .card h4 { margin-top: 0; }
+    .pill {
+      display: inline-block; padding: 5px 10px; border-radius: 999px;
+      background: #1b2a4d; color: #cfe0ff; border: 1px solid #314878;
+      font-size: .78rem; margin: 4px 4px 4px 0;
+    }
+    .tag {
+      display: inline-block; padding: 3px 9px; border-radius: 999px;
+      font-size: .72rem; font-weight: 700; letter-spacing: .02em;
+      margin: 0 8px 0 0; border: 1px solid transparent; vertical-align: middle;
+    }
+    .tag-keep  { background: rgba(157,226,199,.12); color: var(--accent2); border-color: rgba(157,226,199,.35); }
+    .tag-new   { background: rgba(203,178,255,.14); color: var(--new);    border-color: rgba(203,178,255,.4); }
+    .tag-change{ background: rgba(255,213,138,.12); color: var(--warn);   border-color: rgba(255,213,138,.35); }
+    .tag-critical{ background: rgba(255,159,159,.12); color: var(--danger); border-color: rgba(255,159,159,.35); }
+    pre {
+      background: var(--code); color: #d9e6ff; padding: 18px;
+      border: 1px solid var(--line); border-radius: 14px; overflow-x: auto;
+      line-height: 1.45; font-size: .88rem;
+    }
+    code { font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace; }
+    .callout {
+      border-left: 4px solid var(--accent);
+      background: rgba(119,167,255,.08);
+      padding: 16px 18px; border-radius: 10px; margin: 20px 0;
+    }
+    .warning { border-left-color: var(--warn); background: rgba(255,213,138,.07); }
+    .danger { border-left-color: var(--danger); background: rgba(255,159,159,.07); }
+    .newbox { border-left-color: var(--new); background: rgba(203,178,255,.07); }
+    table { width: 100%; border-collapse: collapse; margin: 18px 0; }
+    th, td { border-bottom: 1px solid var(--line); padding: 12px 10px; vertical-align: top; text-align: left; font-size: .92rem; }
+    th { color: #dce7ff; }
+    td { color: var(--muted); }
+    .small { font-size: .88rem; }
+    .toc { columns: 2; column-gap: 32px; }
+    .toc a { color: var(--muted); text-decoration: none; display: block; padding: 3px 0; font-size: .92rem; }
+    .toc a:hover { color: var(--accent); }
+    .footer { margin-top: 72px; color: #7f8daa; font-size: .88rem; }
+    .legend { display: flex; flex-wrap: wrap; gap: 10px 18px; margin: 18px 0 8px; font-size: .85rem; color: var(--muted); }
+    .legend span.tag { margin-right: 6px; }
+  </style>
+</head>
+
+<body>
+<main>
+  <div class="eyebrow">Implementation plan · v0.2 · built on blueprint v0.1</div>
+  <h1>LEVIATHAN — 구현계획안</h1>
+  <p class="tagline">v0.1 아키텍처 검토 결과 + 실행 가능한 설계 결정</p>
+  <p class="lead">
+    이 문서는 사용자가 작성한 <strong>Leviathan v0.1 blueprint</strong>를 검토하고,
+    실제 구현에 들어가기 전에 보완이 필요한 설계 결정과 그 근거, 개정된 컴포넌트 명세,
+    그리고 우선순위가 재조정된 로드맵을 정리한 것이다. v0.1의 핵심 원칙 —
+    <strong>LLM은 분석·제안, 안전 규칙은 deterministic code가 강제</strong> — 은 그대로 유지하며,
+    이 원칙을 실제로 지킬 수 있는 수준까지 설계를 한 단계 더 구체화하는 것이 이 문서의 목적이다.
+  </p>
+
+  <div class="legend">
+    <span><span class="tag tag-keep">유지</span>v0.1 설계를 그대로 채택</span>
+    <span><span class="tag tag-change">변경</span>기존 개념을 다른 방식으로 구현</span>
+    <span><span class="tag tag-new">신규</span>v0.1에 없던 컴포넌트/개념</span>
+    <span><span class="tag tag-critical">핵심</span>안전성·재현성에 직결되는 결정</span>
+  </div>
+
+  <h2>0. 요약</h2>
+  <div class="grid">
+    <div class="card">
+      <h3><span class="tag tag-critical">핵심</span>신호와 숫자의 분리</h3>
+      <p>LLM은 확신도·순위·비중 범위만 제시하고, 최종 % 배분은 결정론적 Portfolio Constructor가 계산한다.</p>
+    </div>
+    <div class="card">
+      <h3><span class="tag tag-new">신규</span>스크리닝 퍼널</h3>
+      <p>전체 유니버스 → 정량 사전필터(코드) → 후보군만 LLM에 전달. 비용·지연·신호 품질을 동시에 해결.</p>
+    </div>
+    <div class="card">
+      <h3><span class="tag tag-new">신규</span>진행상황 적응형 리스크 예산</h3>
+      <p>목표 대비 진행 상황에 따라 리스크 파라미터를 조정하는 결정론적 컨트롤러. "동적 룰 설정"의 실체.</p>
+    </div>
+    <div class="card">
+      <h3><span class="tag tag-critical">핵심</span>백테스트 lookahead bias</h3>
+      <p>LLM은 학습 데이터에 미래 정보가 섞여 있어 과거 시점 backtest 자체가 오염될 수 있다. forward paper trading을 1차 검증 수단으로 삼는다.</p>
+    </div>
+  </div>
+
+  <div class="toc card">
+    <a href="#s1">1. v0.1에서 그대로 가져가는 것</a>
+    <a href="#s2">2. 핵심 설계 변경 사항</a>
+    <a href="#s3">3. 개정된 전체 아키텍처</a>
+    <a href="#s4">4. LLM 사용 전략 상세</a>
+    <a href="#s5">5. 컴포넌트 명세 개정판</a>
+    <a href="#s6">6. 데이터 스키마 추가/변경</a>
+    <a href="#s7">7. 운영 안정성 &amp; 장애 대응</a>
+    <a href="#s8">8. 보안</a>
+    <a href="#s9">9. 테스트 전략</a>
+    <a href="#s10">10. 개정 로드맵</a>
+    <a href="#s11">11. 리스크 총괄표</a>
+    <a href="#s12">12. 지금 바로 시작할 것</a>
+  </div>
+
+  <h2 id="s1">1. v0.1에서 그대로 가져가는 것</h2>
+  <p>다음은 이미 잘 설계되어 있어 수정 없이 채택한다.</p>
+  <ul>
+    <li><strong>LLM ↔ Risk Engine 분리 원칙</strong> — 이 프로젝트 전체의 안전성이 여기에 달려 있다. 어떤 보완을 하든 이 경계는 건드리지 않는다.</li>
+    <li><strong>Paper → Sandbox → Assisted → Controlled</strong> 4단계 전개와 각 단계의 완료 기준.</li>
+    <li><strong>Broker trait 추상화</strong>와 <code>TradeProposal → RiskEngine → ExecutionRouter → Broker</code> 경로.</li>
+    <li><strong>Rust(도메인/회계/리스크/실행) + Python(LLM/리서치/리포트)</strong> 역할 분담.</li>
+    <li><strong>Model Router</strong> — 태스크 난이도별 모델 차등 사용이라는 아이디어 자체는 정확하다. (4장에서 태스크 구조를 더 구체화한다.)</li>
+    <li><strong>Decision timestamp + context + model + prompt version 저장</strong> — 이 원칙이 없으면 뒤에 나올 Eval Harness도, 미래정보 누수 방지도 불가능하다.</li>
+    <li>CLI-only, SQLite, subprocess JSON IPC 같은 "이 프로젝트 규모에 맞는 단순함" 판단들.</li>
+  </ul>
+
+  <h2 id="s2">2. 핵심 설계 변경 사항</h2>
+
+  <h3>2.1 <span class="tag tag-critical">핵심</span> LLM은 "신호"를, 코드는 "숫자"를 만든다</h3>
+  <p>
+    v0.1의 structured output 예시는 LLM이 <code>target_weight: 0.10</code>처럼 최종 비중을 직접 산출한다.
+    문제는 LLM이 "종목당 15% 이하, 섹터당 35% 이하, 현금 5% 이상" 같은 다중 제약을 만족하는 숫자를
+    안정적으로 계산하지 못한다는 점이다. 대략 맞지만 왜 12.3%이고 12%나 15%가 아닌지 설명할 수 없고,
+    동일 입력에서도 재현되지 않을 수 있다. 이는 v0.1이 스스로 정한 성공 기준
+    (<em>"동일한 실행 기록으로 portfolio state를 다시 계산할 수 있다"</em>)과 정면으로 충돌한다.
+  </p>
+  <p><strong>변경안:</strong> LLM 출력 스키마를 숫자가 아니라 신호로 바꾼다.</p>
+  <pre><code>{
+  "market_regime": "risk_on",
+  "candidates": [
+    {
+      "symbol": "005930",
+      "conviction": 4,                 // 1~5 정수
+      "suggested_weight_band": [0.05, 0.12],
+      "thesis": "...",
+      "key_risks": ["..."],
+      "horizon_days": 20
+    }
+  ],
+  "cash_weight_hint": [0.15, 0.25],
+  "confidence": 0.71
+}</code></pre>
+  <p>
+    이 신호를 받아 <strong>Portfolio Constructor</strong>(결정론적, Rust 또는 Python 순수 함수)가
+    conviction·weight band·변동성·상관관계·이번 사이클 리스크 예산(2.3 참고)을 입력으로
+    실제 숫자 비중을 계산한다. 방식은 단순할수록 좋다 — conviction 비례 배분, 혹은 band 내
+    inverse-volatility 가중 정도로 충분하다. 핵심은 <strong>같은 신호 입력이면 항상 같은 숫자가
+    나온다는 것</strong>이며, 이 덕분에 "왜 이 비중인가"를 코드로 설명할 수 있게 된다.
+  </p>
+
+  <h3>2.2 <span class="tag tag-new">신규</span> 스크리닝 퍼널</h3>
+  <p>
+    코스피·코스닥 합쳐 2,500개 이상의 종목을 매 사이클 가격·뉴스·재무 데이터와 함께 LLM에
+    넣는 것은 비용과 지연 문제이기도 하지만, 그보다 더 큰 문제는 <strong>신호 희석</strong>이다.
+    v0.1 아키텍처는 "Market Data / News / Fundamentals" 박스에서 곧바로 "AI/LLM Layer"로
+    화살표가 이어지는데, 그 사이에 결정론적 사전필터가 빠져 있다.
+  </p>
+  <pre><code>전체 유니버스 (~2,500)
+      │  거래대금/시총 하한, 관리종목·거래정지 제외,
+      │  사용자 지정 유니버스 제약, 기본 모멘텀·밸류 팩터 스코어링
+      ▼   (전부 코드, LLM 미사용)
+후보군 (~150~300)
+      │  cheap 모델: 뉴스 관련성·이벤트 태깅 (배치)
+      ▼
+숏리스트 (~30~50)
+      │  mid 모델: thesis 작성 + 1차 ranking
+      ▼
+최종 후보 (~10~20)
+      │  strong 모델: conviction / weight band 산출
+      ▼
+Portfolio Constructor 입력</code></pre>
+  <p class="small">
+    각 단계의 정확한 개수는 config로 조절한다. 중요한 것은 "비싼 모델일수록 더 적은 종목을 본다"는
+    깔때기 구조 자체이며, 이는 v0.1의 Model Routing 개념을 그대로 확장한 것이다.
+  </p>
+
+  <h3>2.3 <span class="tag tag-new">신규</span> 진행상황 적응형 리스크 예산 — "동적 룰 설정"의 실체</h3>
+  <p>
+    사용자가 원한 것은 "목표 기간 내 목표에 도달하도록 동적으로 룰을 설정"하는 것이었다.
+    v0.1에는 이를 구현할 구체적인 메커니즘이 없다. 다만 이걸 LLM이 직접 하게 하면
+    "confidence가 높으니 예외적으로 40% 매수"류의 위험한 자기 정당화가 재발할 수 있으므로,
+    <strong>동적 조정 자체를 결정론적 코드가 수행</strong>하도록 설계한다.
+  </p>
+  <ul>
+    <li>목표 시작 시점에 initial capital → target value로 가는 <strong>glide path</strong>(기대 NAV 곡선)를 계산한다.</li>
+    <li>매 사이클 <code>진행 편차 = (실제 NAV − glide path NAV) / glide path NAV</code>를 계산한다.</li>
+    <li><strong>Risk Budget Controller</strong>(순수 함수)가 진행 편차와 남은 기간을 입력받아,
+      사용자가 사전에 승인한 상한·하한 범위 안에서만 이번 사이클의 리스크 파라미터
+      (max_drawdown, max_single_position, cash_buffer 등)를 조정한다.</li>
+    <li>목표를 앞서가면 → 현금 비중 하한을 높이고 포지션 상한을 낮춰 이익을 보존하는 쪽으로.</li>
+    <li>목표에 뒤처지면 → 사전 승인 범위 내에서만 리스크를 소폭 확대. <strong>범위를 벗어나는 확대는
+      코드 레벨에서 원천 차단</strong>한다.</li>
+    <li>뒤처짐이 크고 남은 기간도 부족하면 → 리스크를 더 키우는 대신 사용자에게 알림을 보내고
+      목표/기간 재조정을 제안한다. (손실 추격매매 패턴을 시스템이 자동으로 재현하지 않도록 하는
+      가장 중요한 안전장치다.)</li>
+  </ul>
+  <div class="callout newbox">
+    이 컨트롤러의 출력은 그 사이클의 LLM에게 <em>제약 조건</em>으로 전달될 뿐이다.
+    LLM은 여전히 자신의 리스크 한도를 스스로 바꿀 수 없다 — v0.1의 핵심 원칙과 충돌하지 않는다.
+  </div>
+
+  <h3>2.4 <span class="tag tag-critical">핵심</span> 백테스트의 함정: LLM lookahead bias</h3>
+  <p>
+    v0.1에는 백테스트에 대한 언급이 아예 없는데, 이 프로젝트에서는 오히려 그게 안전한 방향일 수 있다.
+    일반적인 quant 백테스트와 달리, LLM 기반 시스템의 백테스트에는 전통적인 backtest에는 없는
+    함정이 있다.
+  </p>
+  <div class="callout danger">
+    <strong>문제:</strong> 범용 LLM은 학습 데이터에 특정 시점 이후의 뉴스·실적·주가 흐름에 대한
+    코멘터리가 포함되어 있다. "2024-03-01 기준으로 판단하라"고 프롬프트를 짜도, 모델은
+    파라미터 안에 그 이후에 일어난 일을 이미 "알고" 있을 수 있다. 즉 과거 시점을 흉내 낸 LLM
+    백테스트는 미래 정보 누수로 오염되어 있을 가능성이 높고, 이걸로 측정한 성과는 신뢰할 수 없다.
+  </div>
+  <p><strong>대응 방향:</strong></p>
+  <ul>
+    <li><strong>Forward paper trading을 LLM 판단 품질의 1차 검증 수단으로 삼는다.</strong>
+      과거 재현이 아니라 실시간으로 쌓이는 forward 기록만이 신뢰할 수 있는 평가 대상이다.</li>
+    <li>과거 데이터를 이용한 replay는 <strong>결정론적 파이프라인 검증 용도로만</strong> 쓴다 —
+      데이터 수집, 회계, Risk Engine 경계값, PaperBroker 체결/슬리피지 모델, 리포트 생성.
+      이때 LLM 자리에는 단순 모멘텀 같은 규칙 기반 "stand-in 전략"을 넣어 LLM 컴포넌트를 아예
+      배제한 채 나머지 90%를 빠르게 회귀 테스트한다.</li>
+    <li>모든 LLM 프롬프트는 "아래 제공된 정보만 사용하고, 이후에 일어난 일에 대한 사전 지식을
+      사용하지 말라"는 지침을 명시적으로 포함한다 — forward 운영에서도 일반적으로 지켜야 할 원칙이다.</li>
+    <li>정말 오프라인 평가가 필요하다면, 학습 cutoff가 검증 대상 기간보다 명확히 이전인 모델을 쓰는
+      것을 실험적 옵션으로 남겨둔다. (강한 보장은 아니지만 구조적으로 누수 가능성을 줄인다.)</li>
+  </ul>
+
+  <h3>2.5 <span class="tag tag-new">신규</span> Grounding / 자기검증 레이어</h3>
+  <p>
+    LLM이 제공되지 않은 사실을 인용하거나(예: 존재하지 않는 종목 코드, context에 없는 수치) 리스크
+    규칙을 우회하려는 논리를 펼 가능성은 항상 있다. Risk Engine이 최종 방어선이지만, 그 앞에
+    저렴한 검증 단계를 하나 더 두면 낭비되는 사이클을 줄일 수 있다.
+  </p>
+  <ul>
+    <li>언급된 모든 종목 코드가 실제로 이번 사이클 후보 리스트에 있었는지 코드로 검증.</li>
+    <li>thesis에 등장하는 수치(PER, 거래량 등)가 제공된 context 안에서 추적 가능한지 검증.</li>
+    <li>추적 불가능한 항목이 있으면 "grounding 신뢰도 낮음"으로 표시하고, 보수적 기본값으로
+      다운그레이드하거나 cheap/mid 모델로 재검토 프롬프트를 한 번 더 태운다.</li>
+  </ul>
+
+  <h3>2.6 <span class="tag tag-new">신규</span> 목표 실현가능성의 정량화</h3>
+  <p>
+    v0.1은 "LLM 문장만 믿지 않고 수치 기반 sanity check를 함께 수행"이라고 명시했지만 방법이 없다.
+    확률 계산은 LLM이 아니라 통계 모델이 담당해야 한다.
+  </p>
+  <ul>
+    <li>결정론적으로 요구 CAGR을 계산한다: <code>(target / initial) ^ (365 / days) − 1</code>.</li>
+    <li>과거 수익률·변동성 분포(또는 자산군별 가정치)를 이용한 Monte Carlo 시뮬레이션으로,
+      risk profile별 "목표 기간 내 도달 확률"을 계산한다.</li>
+    <li>LLM의 역할은 확률을 추정하는 것이 아니라 <strong>결과를 설명하고 대안을 제시</strong>하는
+      것으로 한정한다 — 예: "공격적 배분에서 성공 확률 38%, 최대낙폭 예상 -18%. 기간을 3개월
+      늘리면 확률이 55%로 상승."</li>
+    <li>월간 재평가 시 실제 실적을 반영해 확률을 다시 계산하고, 크게 이탈했으면 목표/기간/리스크
+      조정안을 사용자에게 제시한다 (자동으로 조용히 바꾸지 않는다).</li>
+  </ul>
+
+  <h3>2.7 <span class="tag tag-new">신규</span> Prompt Versioning + Offline Eval Harness</h3>
+  <p>
+    프롬프트 버전을 저장하는 것(v0.1에 이미 있음)만으로는 부족하다. 실제로 그 버전들을 비교할 수단이
+    필요하다. Forward paper trading에서 실제로 기록된 decision context(그 시점에 실제로 주어졌던
+    정보이므로 lookahead 문제가 없다)를 재사용해, 새 프롬프트/모델 버전을 같은 입력에 다시 태워
+    출력을 비교하는 <code>leviathan eval</code> 서브커맨드를 만든다. 구조화 출력 파싱 실패율,
+    재시도율, 지연, 비용을 프롬프트 버전별 품질 지표로 함께 추적한다.
+  </p>
+
+  <h2 id="s3">3. 개정된 전체 아키텍처</h2>
+  <pre><code>              User Goal (금액 / 기간 / 리스크 상·하한)
+                            │
+                            ▼
+              Goal Feasibility Engine
+      (Monte Carlo 확률 모델 + LLM 설명·대안 제시)
+                            │
+                            ▼
+        ┌───────────────────────────────────┐
+        │ Progress-Adaptive Risk Budget       │ ◄── glide path vs 실제 NAV
+        │ Controller  (deterministic)         │
+        └───────────────────┬─────────────────┘
+                             │ 이번 사이클 리스크 예산
+                             ▼
+   Universe ──► Quant Pre-Filter ──► 후보군 (전부 code, LLM 미사용)
+                                        │
+                                        ▼
+                          ┌───────────────────────┐
+                          │     AI / LLM Layer      │
+                          │ regime / thesis /       │
+                          │ conviction &amp; weight band│
+                          └────────────┬─────────────┘
+                                        │
+                                        ▼
+                        Grounding / Self-Critique Check
+                                        │
+                                        ▼
+                    Portfolio Constructor (deterministic 숫자 변환)
+                                        │
+                                        ▼
+                     Risk Engine (hard limits, LLM 관여 불가)
+                                        │
+                                        ▼
+                         Execution Router ──► Broker
+                                        │
+                                        ▼
+              Portfolio Ledger ──► Evaluation ──► Report
+                                        │
+                                        ├──► Eval Harness (prompt 회귀 테스트)
+                                        └──► 월간 목표 재평가 → Goal Engine 피드백</code></pre>
+
+  <h2 id="s4">4. LLM 사용 전략 상세</h2>
+  <p>
+    태스크별로 모델 등급, 입출력, 그리고 무엇보다 <strong>실패 시 대응</strong>을 명시한다.
+    LLM 호출 실패는 예외 상황이 아니라 정상적으로 발생하는 운영 조건으로 설계해야 한다.
+  </p>
+  <table>
+    <thead>
+      <tr><th>태스크</th><th>모델 등급</th><th>입력 → 출력</th><th>실패/장애 시 대응</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>뉴스 분류·중복 제거</td>
+        <td>cheap</td>
+        <td>기사 원문 → 카테고리, dedup id</td>
+        <td>키워드 기반 규칙으로 대체</td>
+      </tr>
+      <tr>
+        <td>뉴스 요약·이벤트 태깅</td>
+        <td>cheap</td>
+        <td>기사 원문 → {summary, event_type, tickers}</td>
+        <td>해당 기사 스킵 + 로그, 파이프라인은 계속</td>
+      </tr>
+      <tr>
+        <td>시장 regime 판단</td>
+        <td>mid</td>
+        <td>지표 스냅샷 + 요약뉴스 → {regime, confidence}</td>
+        <td>이전 사이클 regime 유지</td>
+      </tr>
+      <tr>
+        <td>후보 thesis 작성 · 1차 ranking</td>
+        <td>mid</td>
+        <td>후보 팩터 + 뉴스 → thesis, risk_flags, rank_score</td>
+        <td>정량 팩터 랭킹으로 대체</td>
+      </tr>
+      <tr>
+        <td>Grounding 검증</td>
+        <td>cheap~mid</td>
+        <td>상위 출력 + 원본 context → {issues[], grounded}</td>
+        <td>보수적으로 "미검증" 취급</td>
+      </tr>
+      <tr>
+        <td>최종 conviction / weight band</td>
+        <td>strong</td>
+        <td>숏리스트 + regime + 리스크 예산 → 2.1의 스키마</td>
+        <td><strong>자동 HOLD, 신규 주문 생성 안 함</strong></td>
+      </tr>
+      <tr>
+        <td>목표 실현가능성 설명</td>
+        <td>strong</td>
+        <td>Monte Carlo 결과 → 자연어 설명 + 대안안</td>
+        <td>수치 결과만 노출, 설명 텍스트는 보류</td>
+      </tr>
+      <tr>
+        <td>주간 전략 리뷰 / 월간 목표 재평가</td>
+        <td>strong</td>
+        <td>누적 decision log 요약 → 리뷰 리포트</td>
+        <td>다음 사이클 재시도 + 알림</td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="callout">
+    공통 규칙: timeout·재시도(지수 백오프, 최대 N회)를 거쳐도 실패하면 <strong>이전 상태를 유지하거나
+    HOLD로 폴백</strong>한다. 어떤 실패 경로도 "신규 거래를 발생시키는 방향"으로 열려 있으면 안 된다.
+  </div>
+
+  <h2 id="s5">5. 컴포넌트 명세 개정판</h2>
+  <table>
+    <thead>
+      <tr><th>컴포넌트</th><th>상태</th><th>내용</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Goal Engine</td><td><span class="tag tag-change">변경</span></td>
+        <td>요구 수익률 계산은 유지, Monte Carlo 확률 모델 추가.</td></tr>
+      <tr><td>Quant Pre-Filter</td><td><span class="tag tag-new">신규</span></td>
+        <td>Research Engine과 LLM Layer 사이에 삽입되는 결정론적 필터.</td></tr>
+      <tr><td>Research Engine</td><td><span class="tag tag-keep">유지</span></td>
+        <td>market/news/fundamentals context 조립 역할 그대로.</td></tr>
+      <tr><td>Strategy Engine → Portfolio Constructor</td><td><span class="tag tag-change">변경</span></td>
+        <td>LLM 출력을 숫자가 아닌 conviction/band로 축소, 결정론적 변환 모듈 신설.</td></tr>
+      <tr><td>Risk Budget Controller</td><td><span class="tag tag-new">신규</span></td>
+        <td>glide path 대비 진행 편차 → 사전승인 범위 내 리스크 파라미터 조정.</td></tr>
+      <tr><td>Risk Engine</td><td><span class="tag tag-keep">유지</span></td>
+        <td>hard limit 강제 역할 그대로, 입력값만 Risk Budget Controller에서 받음.</td></tr>
+      <tr><td>Grounding Checker</td><td><span class="tag tag-new">신규</span></td>
+        <td>Risk Engine 이전 단계에서 환각/근거 없는 주장 필터링.</td></tr>
+      <tr><td>Broker / Execution Layer</td><td><span class="tag tag-keep">유지</span></td>
+        <td>trait 기반 추상화 그대로.</td></tr>
+      <tr><td>Evaluation Engine</td><td><span class="tag tag-keep">유지</span></td>
+        <td>지표 세트 그대로.</td></tr>
+      <tr><td>Eval Harness</td><td><span class="tag tag-new">신규</span></td>
+        <td>실제 forward decision context를 재사용한 prompt 회귀 테스트 도구.</td></tr>
+    </tbody>
+  </table>
+
+  <h2 id="s6">6. 데이터 스키마 추가/변경</h2>
+  <p>v0.1의 SQLite 테이블 목록에 다음을 추가한다.</p>
+  <pre><code>glide_path_snapshots
+├─ run_id, date, target_nav, actual_nav, deviation, adjusted_risk_params_json
+
+screening_results
+├─ run_id, date, symbol, quant_score, passed_filter, factors_json
+
+grounding_checks
+├─ decision_id, issues_json, grounded_bool, checker_model, checked_at
+
+prompt_versions
+├─ id, task_type, version, file_hash, created_at
+
+eval_runs
+├─ id, prompt_version_id, context_ref, parse_failure_rate,
+│  avg_latency_ms, notes, run_at
+
+goal_feasibility_snapshots
+├─ run_id, date, required_cagr, success_probability_by_risk_json, recommendation</code></pre>
+
+  <h2 id="s7">7. 운영 안정성 &amp; 장애 대응</h2>
+  <ul>
+    <li><strong>LLM 호출:</strong> timeout + 지수 백오프 재시도 → 최종 실패 시 HOLD 폴백, 신규 주문 없음.</li>
+    <li><strong>데이터 staleness:</strong> 마지막 갱신 시각을 검증하고, 임계치 초과 시 해당 사이클을
+      스킵하고 알림만 남긴다.</li>
+    <li><strong>Kill switch:</strong> v0.1은 Stage 3부터 도입하지만, 습관화를 위해 Stage 1(paper trading
+      단계)부터 CLI 명령 하나로 즉시 정지 + 상태 스냅샷 저장이 되도록 조기 구현을 권장한다.</li>
+    <li><strong>알림:</strong> 로컬 로그를 기본으로 하되, 목표 이탈·LLM 연속 실패·kill switch 발동 같은
+      중요 이벤트는 파일 기반 알림(요약 텍스트/HTML 생성)으로 눈에 띄게 남긴다. 메신저/이메일
+      webhook 연동은 필요할 때 추가하는 선택 사항으로 둔다.</li>
+  </ul>
+
+  <h2 id="s8">8. 보안</h2>
+  <ul>
+    <li>브로커·LLM API 키는 저장소에 커밋하지 않고, 권한이 제한된 로컬 secrets 파일 또는 OS
+      keyring으로 관리한다.</li>
+    <li>실계좌 연동 단계부터는 주문 payload·로그에 자격증명 원문이 남지 않도록 마스킹한다.</li>
+  </ul>
+
+  <h2 id="s9">9. 테스트 전략</h2>
+  <ul>
+    <li><strong>회계 invariant 테스트:</strong> 현금 + 포지션 평가액 = NAV, 음수 현금 불가 등을
+      property-based test로 검증.</li>
+    <li><strong>Risk Engine 경계값 테스트:</strong> 한도 바로 아래/위 케이스.</li>
+    <li><strong>PaperBroker 체결 시뮬레이션 테스트:</strong> partial fill, slippage 모델.</li>
+    <li><strong>LLM structured output 파싱 테스트:</strong> 정상/손상 JSON, 스키마 위반 시 재시도·폴백
+      동작 검증.</li>
+    <li><strong>파이프라인 통합 회귀 테스트:</strong> 2.4에서 설명한 결정론적 stand-in 전략으로
+      전체 파이프라인(데이터→구성→리스크→체결→리포트)을 과거 데이터로 반복 검증. LLM 컴포넌트는
+      배제한다.</li>
+  </ul>
+
+  <h2 id="s10">10. 개정 로드맵</h2>
+  <table>
+    <thead>
+      <tr><th>Phase</th><th>목표</th><th>v0.2 추가 사항</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Phase 1</td><td>Core domain</td>
+        <td>기존 domain model/ledger + 회계 invariant property-based test.</td>
+      </tr>
+      <tr>
+        <td>Phase 2</td><td>Data &amp; research</td>
+        <td><span class="tag tag-new">신규</span> Quant Pre-Filter, point-in-time 데이터 계약(재무제표
+        정정 처리).</td>
+      </tr>
+      <tr>
+        <td>Phase 3</td><td>LLM intelligence</td>
+        <td><span class="tag tag-change">변경</span> conviction/weight band 스키마, Grounding Checker,
+        실패 폴백 규칙.</td>
+      </tr>
+      <tr>
+        <td>Phase 4</td><td>Paper execution</td>
+        <td><span class="tag tag-new">신규</span> Progress-Adaptive Risk Budget Controller, kill switch
+        조기 도입.</td>
+      </tr>
+      <tr>
+        <td>Phase 4.5</td><td>Goal Feasibility 고도화</td>
+        <td><span class="tag tag-new">신규</span> Monte Carlo 확률 모델, 월간 재평가·알림 흐름.</td>
+      </tr>
+      <tr>
+        <td>Phase 5</td><td>Broker abstraction</td>
+        <td>v0.1 그대로.</td>
+      </tr>
+      <tr>
+        <td>Phase 5.5</td><td>Eval Harness</td>
+        <td><span class="tag tag-new">신규</span> prompt versioning + decision context replay 도구.</td>
+      </tr>
+      <tr>
+        <td>Phase 6</td><td>Broker sandbox</td>
+        <td>v0.1 그대로.</td>
+      </tr>
+      <tr>
+        <td>Phase 7</td><td>Assisted live</td>
+        <td>v0.1 그대로.</td>
+      </tr>
+      <tr>
+        <td>Phase 8</td><td>Controlled automation</td>
+        <td>"LLM 실패 시 안전 정지"가 실제로 검증되었는지가 전환 조건에 명시적으로 포함.</td>
+      </tr>
+      <tr>
+        <td>Phase 9~10</td><td>Multi-broker / 장기 최적화</td>
+        <td>v0.1 그대로, Eval Harness 결과를 지속 개선 루프에 반영.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2 id="s11">11. 리스크 총괄표</h2>
+  <table>
+    <thead>
+      <tr><th>리스크</th><th>영향</th><th>완화책</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>LLM 백테스트 lookahead bias</td>
+        <td>검증 결과 왜곡, 과신</td>
+        <td>forward paper trading 중심 검증, 결정론적 stand-in으로 파이프라인만 회귀 테스트</td>
+      </tr>
+      <tr>
+        <td>LLM이 비중을 직접 산출</td>
+        <td>재현 불가능, 설명 불가능한 포트폴리오</td>
+        <td>conviction/band + Portfolio Constructor 분리</td>
+      </tr>
+      <tr>
+        <td>전 종목을 매 사이클 LLM 분석</td>
+        <td>비용·지연 폭증, 신호 희석</td>
+        <td>Quant Pre-Filter 퍼널</td>
+      </tr>
+      <tr>
+        <td>LLM API 장애·timeout</td>
+        <td>자동매매 중단 또는 오류 전파</td>
+        <td>HOLD 폴백, kill switch 조기 도입</td>
+      </tr>
+      <tr>
+        <td>목표 미달 시 리스크 확대 유혹</td>
+        <td>손실 확대, 목표 과최적화(추격매매)</td>
+        <td>Risk Budget Controller의 사전승인 envelope 내 조정 + 사용자 알림 우선</td>
+      </tr>
+      <tr>
+        <td>재무제표 정정(restatement)으로 인한 미래정보 누수</td>
+        <td>당시 알 수 없었던 정보로 판단했던 것처럼 보임</td>
+        <td>point-in-time 데이터 계약, revision 필드 저장</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2 id="s12">12. 지금 바로 시작할 것</h2>
+  <p>전체를 한 번에 구현할 필요는 없다. 다음 순서를 권장한다.</p>
+  <ul>
+    <li>Phase 1의 domain model + ledger + invariant test부터 시작 (v0.1과 동일).</li>
+    <li>Goal Feasibility의 Monte Carlo 프로토타입을 Python으로 먼저 만들어본다 — LLM 없이도
+      독립적으로 검증 가능하다.</li>
+    <li>conviction/weight band 스키마를 확정하고 Portfolio Constructor 최소 버전(예: conviction
+      비례 배분)을 구현한다.</li>
+    <li>스크리닝 퍼널은 유동성·시가총액 필터만 있는 최소 버전으로 시작해도 충분하다.</li>
+    <li>Grounding Checker와 Eval Harness는 Phase 3~5.5로 미뤄도 무방하지만, decision log 스키마에
+      필요한 필드(context 원본, prompt version)는 Phase 1부터 확보해 둔다 — 나중에 소급 적용이
+      불가능하기 때문이다.</li>
+  </ul>
+
+  <div class="callout">
+    <strong>핵심 연구 질문(v0.1 유지):</strong><br/>
+    "LLM에게 단순히 주가를 예측하게 하는 것이 아니라, 현재 이용 가능한 다양한 정보를 종합하여
+    목표에 맞는 전략을 동적으로 구성하게 했을 때, 단순한 투자 전략보다 더 나은
+    risk-adjusted decision making을 보여줄 수 있는가?"<br/><br/>
+    이 문서의 모든 변경 사항은 이 질문에 대한 답을 <strong>신뢰할 수 있는 방식으로</strong> 얻기 위한
+    것이다 — LLM이 실제로 가치를 만드는지, 아니면 그저 미래 정보를 은연중에 알고 있어서 좋아
+    보이는지를 구분할 수 있어야 이 질문에 답할 수 있다.
+  </div>
+
+  <div class="footer">
+    Leviathan · Implementation plan v0.2 · Built on blueprint v0.1 · Local-first / CLI / Rust + Python
+  </div>
+</main>
+</body>
+</html>

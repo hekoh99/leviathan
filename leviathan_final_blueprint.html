@@ -1,0 +1,1141 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Leviathan — Final Blueprint v1.0</title>
+  <style>
+    :root {
+      --bg: #09101e;
+      --panel: #111a2e;
+      --panel2: #17223b;
+      --text: #edf3ff;
+      --muted: #aebbd7;
+      --line: #2b3a60;
+      --accent: #78a8ff;
+      --accent2: #9ce3c6;
+      --warn: #ffd58a;
+      --danger: #ff9d9d;
+      --purple: #c9b4ff;
+      --code: #070e1b;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 20% -10%, rgba(75,120,210,.18), transparent 34%),
+        linear-gradient(180deg, #07101d 0%, #0a1120 42%, #090f1c 100%);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+                   "Noto Sans KR", sans-serif;
+      line-height: 1.68;
+    }
+    main { max-width: 1160px; margin: 0 auto; padding: 58px 24px 100px; }
+    h1, h2, h3, h4 { line-height: 1.22; }
+    h1 { margin: 0 0 12px; font-size: clamp(2.5rem, 7vw, 5.2rem); letter-spacing: -.045em; }
+    h2 { margin-top: 58px; padding-bottom: 12px; border-bottom: 1px solid var(--line); font-size: 1.78rem; }
+    h3 { margin-top: 30px; font-size: 1.18rem; }
+    h4 { color: #dce7ff; }
+    p, li { color: var(--muted); }
+    strong { color: var(--text); }
+    a { color: var(--accent); }
+    .eyebrow { color: var(--accent2); font-size: .76rem; font-weight: 800; text-transform: uppercase; letter-spacing: .17em; }
+    .tagline { color: var(--accent); font-weight: 750; font-size: 1.05rem; }
+    .lead { max-width: 920px; color: #dce6fb; font-size: 1.16rem; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(240px,1fr)); gap: 16px; margin: 22px 0; }
+    .grid.two { grid-template-columns: repeat(auto-fit,minmax(330px,1fr)); }
+    .card {
+      border: 1px solid var(--line);
+      background: rgba(17,26,46,.90);
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 12px 34px rgba(0,0,0,.16);
+    }
+    .card h3, .card h4 { margin-top: 0; }
+    .pill {
+      display: inline-block; padding: 5px 10px; margin: 4px 4px 4px 0;
+      border: 1px solid #344b7d; border-radius: 999px; background: #1b2a4d;
+      color: #d4e2ff; font-size: .78rem;
+    }
+    .badge {
+      display: inline-block; border-radius: 999px; padding: 3px 9px; margin-right: 7px;
+      font-size: .7rem; font-weight: 800; vertical-align: middle;
+    }
+    .b-core { color: var(--accent2); background: rgba(156,227,198,.10); border: 1px solid rgba(156,227,198,.35); }
+    .b-new { color: var(--purple); background: rgba(201,180,255,.11); border: 1px solid rgba(201,180,255,.35); }
+    .b-safe { color: var(--warn); background: rgba(255,213,138,.10); border: 1px solid rgba(255,213,138,.35); }
+    pre {
+      background: var(--code); color: #dbe8ff; border: 1px solid var(--line); border-radius: 14px;
+      padding: 18px; overflow-x: auto; line-height: 1.45; font-size: .87rem;
+    }
+    code { font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace; }
+    .callout {
+      margin: 20px 0; padding: 16px 18px; border-radius: 10px;
+      border-left: 4px solid var(--accent); background: rgba(120,168,255,.075);
+    }
+    .warning { border-left-color: var(--warn); background: rgba(255,213,138,.065); }
+    .danger { border-left-color: var(--danger); background: rgba(255,157,157,.065); }
+    .purple { border-left-color: var(--purple); background: rgba(201,180,255,.065); }
+    table { width: 100%; border-collapse: collapse; margin: 18px 0; }
+    th, td { padding: 12px 10px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; font-size: .91rem; }
+    th { color: #dce7ff; }
+    td { color: var(--muted); }
+    .toc { columns: 2; column-gap: 32px; }
+    .toc a { display: block; color: var(--muted); text-decoration: none; padding: 3px 0; font-size: .91rem; }
+    .toc a:hover { color: var(--accent); }
+    .small { font-size: .88rem; }
+    .footer { margin-top: 76px; font-size: .87rem; color: #7e8cab; }
+    @media (max-width: 720px) { .toc { columns: 1; } }
+  </style>
+</head>
+<body>
+<main>
+  <div class="eyebrow">Final system blueprint · v1.0</div>
+  <h1>LEVIATHAN</h1>
+  <p class="tagline">Local-first, goal-driven, LLM-guided modular trading platform.</p>
+  <p class="lead">
+    Leviathan은 사용자가 입력한 목표 금액·기간·허용 리스크를 바탕으로 목표 실현가능성을 정량 평가하고,
+    시장 데이터·뉴스·재무정보를 분석해 투자 후보와 전략 신호를 생성하며, 결정론적 포트폴리오·리스크·실행
+    엔진을 통해 paper trading에서 실제 자동매매까지 단계적으로 확장하는 개인용 Linux CLI 트레이딩 시스템이다.
+  </p>
+
+  <div class="callout">
+    <strong>최종 설계 원칙:</strong> LLM은 사실을 해석하고 후보·conviction·전략 신호를 제안한다.
+    최종 숫자 비중, 리스크 한도, 주문 허용 여부, 체결 상태, 회계는 deterministic code가 결정한다.
+    LLM은 브로커 API에 직접 접근하지 않는다.
+  </div>
+
+  <div class="grid">
+    <div class="card"><h3>Goal-driven</h3><p>목표 CAGR과 도달 확률을 계산하고, 목표 진행상황을 지속적으로 재평가한다.</p></div>
+    <div class="card"><h3>Agentic, not unbounded</h3><p>LLM은 매 사이클 새 정보를 해석하지만 실행 가능한 출력은 제한된 schema와 검증 단계를 통과한다.</p></div>
+    <div class="card"><h3>Paper → Live</h3><p>초기 PaperBroker는 첫 실행 환경일 뿐이며, 최종적으로 실제 증권사 어댑터와 live execution을 지원한다.</p></div>
+    <div class="card"><h3>Replaceable modules</h3><p>Broker, model provider, data provider, strategy, portfolio constructor를 서로 독립적으로 교체할 수 있게 한다.</p></div>
+  </div>
+
+  <div class="card toc">
+    <a href="#vision">1. 최종 비전</a>
+    <a href="#principles">2. 설계 원칙</a>
+    <a href="#flow">3. 사용자 경험 / 실행 흐름</a>
+    <a href="#architecture">4. 최종 아키텍처</a>
+    <a href="#signals">5. LLM 신호와 결정론적 숫자 분리</a>
+    <a href="#screening">6. 스크리닝 퍼널</a>
+    <a href="#goal">7. Goal Feasibility & Risk Budget</a>
+    <a href="#llm">8. LLM / Model Routing</a>
+    <a href="#grounding">9. Grounding & Validation</a>
+    <a href="#broker">10. Broker / Execution Architecture</a>
+    <a href="#portfolio">11. Portfolio / Ledger</a>
+    <a href="#evaluation">12. 평가 전략</a>
+    <a href="#storage">13. 데이터 & 저장</a>
+    <a href="#runtime">14. Rust / Python / Runtime</a>
+    <a href="#cli">15. CLI</a>
+    <a href="#scheduler">16. Scheduler / Decision Cadence</a>
+    <a href="#reliability">17. 운영 안정성 / 보안 / 재해복구</a>
+    <a href="#accounts">18. Multi-Run / Account Allocation</a>
+    <a href="#testing">19. 테스트 전략</a>
+    <a href="#roadmap">20. 단계별 로드맵</a>
+    <a href="#success">21. 성공 기준</a>
+  </div>
+
+  <h2 id="vision">1. 최종 비전</h2>
+  <p>
+    Leviathan의 최종 형태는 특정 증권사에 묶인 자동주문 스크립트가 아니라,
+    <strong>개인용 extensible agentic trading platform</strong>이다. 자연어 목표를 받아 매 시점의
+    시장 상태를 분석하고, 필요하면 전략 구성 자체를 변경하되, 그 결과는 반드시 명시적인 신호와
+    deterministic execution path로 compile한다.
+  </p>
+  <pre><code>User Goal
+   ↓
+Goal Feasibility Engine
+   ↓
+Progress / Risk Budget Controller
+   ↓
+Universe + Point-in-Time Data
+   ↓
+Quant Screening Funnel
+   ↓
+LLM Research / Regime / Thesis / Conviction
+   ↓
+Grounding & Schema Validation
+   ↓
+Portfolio Constructor
+   ↓
+Risk Engine
+   ↓
+Execution Policy
+   ↓
+Execution Router
+   ├─ PaperBroker
+   ├─ KisBroker
+   ├─ HanaBroker
+   └─ FutureBroker
+   ↓
+Portfolio Ledger / Reconciliation
+   ↓
+Evaluation / Reports / Memory
+   ↓
+Next Decision Cycle</code></pre>
+
+  <h2 id="principles">2. 설계 원칙</h2>
+  <div class="grid two">
+    <div class="card">
+      <h3><span class="badge b-core">CORE</span>LLM ≠ 계산 엔진</h3>
+      <p>LLM은 의미 해석, 뉴스 연결, thesis, 후보 순위와 conviction을 제공한다. 제약식과 최종 비중 계산은 코드가 담당한다.</p>
+    </div>
+    <div class="card">
+      <h3><span class="badge b-safe">SAFETY</span>Fail closed</h3>
+      <p>데이터가 stale하거나 모델 호출이 실패하거나 검증을 통과하지 못하면 신규 거래를 하지 않는다. 기본 fallback은 HOLD다.</p>
+    </div>
+    <div class="card">
+      <h3><span class="badge b-new">DESIGN</span>Point-in-time first</h3>
+      <p>모든 판단은 그 순간 이용 가능했던 데이터 snapshot과 revision 정보를 기준으로 재현 가능해야 한다.</p>
+    </div>
+    <div class="card">
+      <h3><span class="badge b-core">CORE</span>Broker-independent core</h3>
+      <p>Strategy, Portfolio, Risk는 KIS/Hana를 모른다. broker-specific 인증·주문 포맷은 adapter 내부에만 존재한다.</p>
+    </div>
+  </div>
+
+  <h2 id="flow">3. 사용자 경험 / 실행 흐름</h2>
+  <pre><code>$ leviathan new
+
+Initial capital: 10,000,000 KRW
+Target amount:   12,000,000 KRW
+Target period:   12 months
+Risk tolerance:  moderate
+
+Required CAGR:       20.0%
+Estimated success probability:
+  conservative: 18%
+  moderate:     37%
+  aggressive:   49%
+
+Assessment:
+Target is aggressive. Extending the period or lowering the target
+would materially improve the probability of success.
+
+Generate initial plan? [Y/n] y
+
+Screening universe...
+Analyzing market regime...
+Evaluating candidates...
+Constructing portfolio...
+Applying risk limits...
+
+Plan ready.
+Start mode:
+  1) paper
+  2) broker sandbox
+  3) live, approval required
+  4) live, limited auto</code></pre>
+
+  <p>
+    실행 중에는 목표 대비 진행상황, portfolio NAV, benchmark, risk budget, 마지막 decision,
+    grounding 상태, broker 상태를 CLI에서 확인한다. HTML/Markdown 보고서는 파일로 생성한다.
+  </p>
+
+  <h2 id="architecture">4. 최종 아키텍처</h2>
+  <pre><code>                     ┌──────────────────────┐
+                     │      Linux CLI       │
+                     │ config / run control │
+                     └──────────┬───────────┘
+                                ▼
+                     ┌──────────────────────┐
+                     │ Goal / Run Manager   │
+                     └──────────┬───────────┘
+                                ▼
+              ┌─────────────────────────────────┐
+              │ Goal Feasibility Engine         │
+              │ CAGR + Monte Carlo + glide path │
+              └────────────────┬────────────────┘
+                               ▼
+              ┌─────────────────────────────────┐
+              │ Risk Budget Controller          │
+              │ deterministic envelope          │
+              └────────────────┬────────────────┘
+                               ▼
+      ┌────────────────────────────────────────────────┐
+      │ Point-in-Time Research Layer                   │
+      │ prices / fundamentals / news / macro / events  │
+      └───────────────────────┬────────────────────────┘
+                              ▼
+                    ┌────────────────────┐
+                    │ Quant Pre-Filter   │
+                    └─────────┬──────────┘
+                              ▼
+                    ┌────────────────────┐
+                    │ AI / LLM Pipeline  │
+                    │ cheap → mid → strong│
+                    └─────────┬──────────┘
+                              ▼
+                    ┌────────────────────┐
+                    │ Grounding Checker  │
+                    └─────────┬──────────┘
+                              ▼
+                  ┌────────────────────────┐
+                  │ Portfolio Constructor  │
+                  │ deterministic weights  │
+                  └───────────┬────────────┘
+                              ▼
+                    ┌────────────────────┐
+                    │    Risk Engine     │
+                    │    hard limits     │
+                    └─────────┬──────────┘
+                              ▼
+                  ┌────────────────────────┐
+                  │   Execution Policy     │
+                  └───────────┬────────────┘
+                              ▼
+                  ┌────────────────────────┐
+                  │   Execution Router     │
+                  └───────────┬────────────┘
+                 ┌────────────┼─────────────┐
+                 ▼            ▼             ▼
+           PaperBroker    KisBroker     HanaBroker
+                 └────────────┼─────────────┘
+                              ▼
+                   Portfolio Ledger
+                              │
+                ┌─────────────┴─────────────┐
+                ▼                           ▼
+          Evaluation                  Report / Memory
+                │                           │
+                └─────────────┬─────────────┘
+                              ▼
+                       next cycle / review</code></pre>
+
+  <h2 id="signals">5. LLM 신호와 결정론적 숫자의 분리</h2>
+  <p>
+    LLM이 <code>target_weight: 0.123</code> 같은 최종 숫자를 직접 만드는 구조는 사용하지 않는다.
+    LLM은 제한된 범위의 신호만 반환한다.
+  </p>
+  <pre><code>{
+  "market_regime": "risk_on",
+  "candidates": [
+    {
+      "symbol": "005930",
+      "conviction": 4,
+      "suggested_weight_band": [0.05, 0.12],
+      "horizon_days": 20,
+      "thesis": "...",
+      "key_risks": ["..."]
+    }
+  ],
+  "cash_weight_hint": [0.15, 0.25],
+  "confidence": 0.71
+}</code></pre>
+  <p>
+    <strong>Portfolio Constructor</strong>가 conviction, weight band, 변동성, 상관관계,
+    현재 risk budget을 받아 최종 비중을 계산한다. 첫 버전은 conviction 비례 또는
+    inverse-volatility 정도의 단순한 방식으로 시작한다.
+  </p>
+  <div class="callout">
+    같은 signal input과 같은 market snapshot이면 언제나 같은 portfolio target이 생성되어야 한다.
+    “왜 12.3%인가?”에 대한 답은 LLM 설명이 아니라 코드와 입력값으로 재현할 수 있어야 한다.
+  </div>
+
+  <h2 id="screening">6. 스크리닝 퍼널</h2>
+  <p>전체 종목을 매번 비싼 모델에 전달하지 않는다.</p>
+  <pre><code>전체 Universe
+   │
+   │ code:
+   │ liquidity / market cap / tradability / user constraints
+   │ basic momentum / value / quality factors
+   ▼
+Quant Candidate Set
+   │
+   │ cheap model:
+   │ news relevance / event tagging / dedup
+   ▼
+Shortlist
+   │
+   │ mid model:
+   │ thesis / risk flags / ranking
+   ▼
+Final Candidate Set
+   │
+   │ strong model:
+   │ conviction / weight bands / strategic context
+   ▼
+Portfolio Constructor</code></pre>
+  <p>
+    “비싼 모델일수록 더 적은 종목을 본다”를 기본 원칙으로 한다.
+    각 단계의 cutoff와 candidate count는 config에서 조정한다.
+  </p>
+
+  <h2 id="goal">7. Goal Feasibility & Progress-Adaptive Risk Budget</h2>
+  <h3>7.1 Goal Feasibility Engine</h3>
+  <p>
+    요구 CAGR은 코드로 계산하고, Monte Carlo 또는 명시적 확률 모델로 목표 기간 내 도달 가능성을 추정한다.
+    LLM은 이 확률을 직접 만들지 않고 결과를 설명하고 대안을 제시한다.
+  </p>
+  <pre><code>required_cagr = (target / initial)^(365 / days) - 1
+
+Inputs:
+- initial capital
+- target value
+- target date
+- risk profile
+- historical / assumed return distribution
+
+Outputs:
+- required CAGR
+- success probability by risk profile
+- expected drawdown range
+- alternative target / period scenarios</code></pre>
+
+  <h3>7.2 Glide Path & Risk Budget Controller</h3>
+  <p>
+    목표 시작 시점부터 target date까지 기대 NAV glide path를 만들고 실제 NAV와의 편차를 계산한다.
+    Risk Budget Controller는 사전 승인된 envelope 안에서만 리스크 파라미터를 조정한다.
+  </p>
+  <ul>
+    <li>목표를 앞서가면: cash floor를 높이고 position cap을 낮춰 이익 보존.</li>
+    <li>약간 뒤처지면: 승인된 범위 안에서만 소폭 risk budget 확대.</li>
+    <li>크게 뒤처지고 시간이 부족하면: 리스크를 무제한 키우지 않고 목표/기간 재설정을 사용자에게 제안.</li>
+  </ul>
+  <div class="callout danger">
+    Leviathan은 “목표가 멀어졌으니 더 큰 베팅을 해서 따라잡는다”는 추격매매를 자동화하지 않는다.
+    Risk envelope 밖의 확대는 코드가 거부한다.
+  </div>
+
+  <h2 id="llm">8. LLM / Model Routing</h2>
+  <table>
+    <thead><tr><th>Task</th><th>Tier</th><th>주요 출력</th><th>실패 시</th></tr></thead>
+    <tbody>
+      <tr><td>뉴스 분류 / dedup</td><td>cheap</td><td>category, tickers, relevance</td><td>규칙 기반 fallback</td></tr>
+      <tr><td>뉴스 요약 / event tagging</td><td>cheap</td><td>summary, event_type</td><td>기사 skip</td></tr>
+      <tr><td>시장 regime</td><td>mid</td><td>regime, confidence</td><td>이전 regime 유지</td></tr>
+      <tr><td>candidate thesis / ranking</td><td>mid</td><td>thesis, risks, rank</td><td>quant ranking 사용</td></tr>
+      <tr><td>grounding review</td><td>cheap~mid</td><td>issues, grounded</td><td>미검증으로 취급</td></tr>
+      <tr><td>최종 conviction / bands</td><td>strong</td><td>structured signal</td><td><strong>HOLD</strong></td></tr>
+      <tr><td>목표 결과 설명</td><td>strong</td><td>explanation, alternatives</td><td>수치만 표시</td></tr>
+      <tr><td>주간/월간 strategic review</td><td>strong</td><td>review report</td><td>다음 주기 재시도</td></tr>
+    </tbody>
+  </table>
+  <p>
+    ModelRouter는 실제 모델명을 domain code에서 숨긴다. <code>TaskType</code> → provider/model mapping을
+    config로 관리하며, 비용·latency·parse failure rate를 함께 기록한다.
+  </p>
+
+  <h2 id="grounding">9. Grounding & Validation</h2>
+  <p>LLM 결과는 주문 경로에 들어가기 전에 최소 세 종류의 검증을 거친다.</p>
+  <div class="grid">
+    <div class="card"><h3>Schema</h3><p>Pydantic/Serde schema를 만족하지 못하면 retry 후 HOLD.</p></div>
+    <div class="card"><h3>Entity</h3><p>언급 종목이 실제 candidate universe와 instrument master에 존재하는지 검사.</p></div>
+    <div class="card"><h3>Fact</h3><p>PER, 가격, 거래량 같은 수치가 supplied context에서 추적 가능한지 검사.</p></div>
+  </div>
+  <p>
+    LLM self-critique는 보조 수단일 뿐이며 최종 grounding 판단은 가능한 범위에서 deterministic validation을 우선한다.
+  </p>
+
+  <h2 id="broker">10. Broker / Execution Architecture</h2>
+  <p>
+    Paper trading과 live trading은 서로 다른 시스템이 아니라 동일한 core 위에 꽂히는 서로 다른 Broker 구현체다.
+  </p>
+  <pre><code>trait Broker
+├─ get_account()
+├─ get_positions()
+├─ get_open_orders()
+├─ submit_order()
+├─ cancel_order()
+├─ get_order()
+└─ get_fills()
+
+Implementations
+├─ PaperBroker
+│   └─ internal simulation / spread / slippage / commission
+├─ KisBroker
+│   └─ 한국투자증권 adapter
+├─ HanaBroker
+│   └─ 하나증권 adapter
+└─ FutureBroker
+    └─ additional domestic / foreign brokers</code></pre>
+
+  <h3>Execution Policy</h3>
+  <pre><code>PAPER
+LIVE_REQUIRES_APPROVAL
+LIVE_LIMITED_AUTO
+LIVE_AUTO</code></pre>
+  <p>
+    실제 broker를 사용하더라도 실행 정책은 별개다. 처음 live로 전환할 때는
+    <code>LIVE_REQUIRES_APPROVAL</code>로 시작하고, 충분한 검증 이후 제한적 자동화로 확장한다.
+  </p>
+
+  <h3>Live order lifecycle</h3>
+  <pre><code>TradeProposal
+   ↓
+Portfolio Target Diff
+   ↓
+RiskEngine
+   ↓
+ExecutionPolicy
+   ↓
+OrderIntent (idempotency key)
+   ↓
+Broker Adapter
+   ↓
+Accepted / Rejected / Partial Fill / Fill / Cancel
+   ↓
+Reconciliation
+   ↓
+Portfolio Ledger</code></pre>
+  <div class="callout warning">
+    Live trading에서는 주문 API 응답만 믿지 않는다. broker account state와 local ledger를 정기적으로
+    reconciliation하고, 차이가 있으면 자동 신규 주문을 중단한다.
+  </div>
+
+  <h2 id="portfolio">11. Portfolio / Accounting / Ledger</h2>
+  <p>Rust core가 source of truth 역할을 한다.</p>
+  <ul>
+    <li>cash / reserved cash</li>
+    <li>positions / lots / average cost</li>
+    <li>realized & unrealized P&amp;L</li>
+    <li>orders / fills / fees / taxes where modeled</li>
+    <li>NAV / exposure / turnover / drawdown</li>
+    <li>broker reconciliation state</li>
+  </ul>
+  <p>
+    모든 상태 변경은 replay 가능한 event 또는 append-oriented ledger record로 남겨,
+    프로세스 재시작 후에도 portfolio state를 재구축할 수 있게 한다.
+  </p>
+
+  <h2 id="evaluation">12. 평가 전략: Forward-first</h2>
+  <div class="callout danger">
+    범용 LLM은 과거 시점 이후의 정보를 학습 파라미터에 포함하고 있을 수 있다.
+    따라서 “2024년 시점이라고 가정해 판단하라”는 식의 LLM 역사 백테스트 결과를 성능 증거로 사용하지 않는다.
+  </div>
+  <p><strong>평가를 세 가지로 분리한다.</strong></p>
+  <ol>
+    <li><strong>Deterministic historical replay:</strong> LLM 대신 stand-in 규칙 전략을 넣어 데이터→회계→리스크→체결→리포트 파이프라인 검증.</li>
+    <li><strong>Forward paper trading:</strong> 실제 시점의 데이터만으로 LLM 의사결정 품질을 평가하는 1차 성과 검증.</li>
+    <li><strong>Offline prompt eval:</strong> 이미 저장된 forward decision context를 새 prompt/model에 재입력해 parse, cost, consistency, ranking 변화 등을 비교.</li>
+  </ol>
+  <p>성과 지표:</p>
+  <span class="pill">Total return</span>
+  <span class="pill">Benchmark return</span>
+  <span class="pill">Alpha</span>
+  <span class="pill">Max drawdown</span>
+  <span class="pill">Volatility</span>
+  <span class="pill">Sharpe-like</span>
+  <span class="pill">Turnover</span>
+  <span class="pill">Hit rate</span>
+  <span class="pill">LLM cost</span>
+  <span class="pill">Parse failure</span>
+
+  
+  <h2 id="storage">13. Storage Architecture — SQLite First</h2>
+
+  <p>
+    Leviathan의 초기 및 중기 운영 저장소는 <strong>SQLite 하나</strong>로 통합한다.
+    이 선택은 단순함 때문만이 아니라, 현재 아키텍처의 실제 workload와 일관성 요구에 잘 맞기 때문이다.
+  </p>
+
+  <h3>13.1 왜 SQLite 하나로 충분한가</h3>
+  <ul>
+    <li>
+      <strong>Single-writer 구조:</strong>
+      Rust 프로세스가 trading cycle을 소유하고 Python worker의 결과를 받아 순차적으로 상태를 기록한다.
+      따라서 SQLite의 대표적 약점인 높은 동시 write 경합이 현재 설계에서는 거의 발생하지 않는다.
+    </li>
+    <li>
+      <strong>재현 가능성:</strong>
+      decision, market snapshot metadata, screening result, risk decision, order/fill을 하나의 transactional store에 두면
+      동일한 snapshot semantics와 reference chain을 유지하기 쉽다.
+      저장소를 여러 개로 나누면 cross-store consistency와 snapshot coordination을 애플리케이션이 직접 책임져야 한다.
+    </li>
+    <li>
+      <strong>운영 단순성:</strong>
+      서버 프로세스, 네트워크 인증, 별도 DB 운영 없이 로컬 파일 하나로 상태를 관리할 수 있다.
+    </li>
+    <li>
+      <strong>백업 단위 단순화:</strong>
+      operational state의 source of truth가 하나이므로 일관된 snapshot을 만들고 복구하는 절차가 단순하다.
+    </li>
+  </ul>
+
+  <div class="callout">
+    SQLite를 쓰는 이유는 “데이터가 적어서”가 아니라,
+    <strong>local-first + single-writer + low-concurrency + strong reproducibility</strong>라는
+    Leviathan의 구조와 잘 맞기 때문이다.
+  </div>
+
+  <h3>13.2 하나의 DB, 세 가지 논리적 데이터 그룹</h3>
+  <table>
+    <thead><tr><th>그룹</th><th>예시</th><th>보존 정책</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>Core Ledger</td>
+        <td>orders, fills, positions, portfolio_snapshots, goals, llm_decisions, risk_decisions</td>
+        <td><strong>영구 보존</strong>. 실제 실행 기록이므로 재생성 불가.</td>
+      </tr>
+      <tr>
+        <td>Reproducibility Evidence</td>
+        <td>decision market snapshots, screening_results, grounding_checks, prompt_versions</td>
+        <td><strong>장기 보존</strong>. 당시 판단을 재현하는 근거.</td>
+      </tr>
+      <tr>
+        <td>Cache / Dev Data</td>
+        <td>재수집 가능한 price cache, news metadata cache, eval_runs, temporary analysis</td>
+        <td>필요 시 prune 가능.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p>
+    특히 <strong>재수집 가능한 일반 market cache</strong>와
+    <strong>실제 decision에 사용된 market snapshot</strong>은 구분한다.
+    후자는 cache가 아니라 audit evidence이므로 삭제하지 않는다.
+  </p>
+
+  <h3>13.3 큰 텍스트·아티팩트는 파일시스템으로 분리</h3>
+  <p>
+    구조화된 메타데이터와 join 대상은 SQLite에 두되,
+    SQL query에 직접 필요하지 않은 큰 원문은 파일시스템에 저장한다.
+  </p>
+
+  <table>
+    <thead><tr><th>데이터</th><th>저장 위치</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>뉴스 기사 원문</td>
+        <td>filesystem (<code>data/news/</code>)</td>
+      </tr>
+      <tr>
+        <td>LLM에 전달한 전체 context snapshot</td>
+        <td>filesystem (<code>data/contexts/</code>)</td>
+      </tr>
+      <tr>
+        <td>HTML / Markdown report</td>
+        <td>filesystem (<code>reports/</code>)</td>
+      </tr>
+      <tr>
+        <td>경로, hash, timestamp, source, summary, decision reference</td>
+        <td>SQLite</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p>
+    분리의 주된 이유는 “큰 텍스트는 DB에 저장할 수 없어서”가 아니다.
+    raw artifact는 압축·diff·직접 열람·중복 제거가 쉽고, operational DB는
+    빠른 join과 상태 관리에 집중할 수 있기 때문이다.
+  </p>
+
+  <pre><code>data/
+├─ leviathan.db
+├─ artifacts/
+│  └─ sha256/
+│     └─ ab/
+│        └─ abcdef....json.zst
+├─ news/
+├─ contexts/
+└─ reports/</code></pre>
+
+  <p>
+    가능한 경우 artifact는 content hash 기반으로 저장한다.
+    DB에는 <code>hash</code>, <code>relative_path</code>, <code>media_type</code>,
+    <code>size_bytes</code>, <code>created_at</code>만 기록한다.
+    동일 context를 여러 eval run에서 재사용해도 중복 저장하지 않는다.
+  </p>
+
+  <h3>13.4 Trading Cycle은 “긴 하나의 트랜잭션”이 아니다</h3>
+  <p>
+    research → LLM → risk → execution 전체 동안 DB transaction을 열어두지 않는다.
+    외부 API나 LLM 호출은 수 초가 걸릴 수 있으므로, 각 단계는 짧은 transaction으로 commit하고
+    전체 cycle은 <strong>recoverable state machine</strong>으로 관리한다.
+  </p>
+
+  <pre><code>cycle_id = 123
+
+CREATED
+  ↓
+RESEARCH_SNAPSHOT_COMMITTED
+  ↓
+DECISION_COMMITTED
+  ↓
+PORTFOLIO_TARGET_COMMITTED
+  ↓
+RISK_APPROVED
+  ↓
+ORDER_INTENT_COMMITTED
+  ↓
+EXECUTED / REJECTED / HALTED</code></pre>
+
+  <p>
+    프로세스가 중간에 죽어도 <code>cycle_id</code>와 상태를 통해 어디까지 완료됐는지 알 수 있어야 하며,
+    live trading에서는 idempotency key를 사용해 같은 주문이 두 번 생성되지 않도록 한다.
+  </p>
+
+  <h3>13.5 초기 SQLite 설정</h3>
+  <pre><code>PRAGMA journal_mode = WAL;
+PRAGMA foreign_keys = ON;
+PRAGMA busy_timeout = 5000;</code></pre>
+
+  <ul>
+    <li><strong>WAL:</strong> trading loop가 쓰는 동안 CLI/report reader가 조회할 수 있게 한다.</li>
+    <li><strong>foreign_keys:</strong> schema 관계를 실제로 강제한다.</li>
+    <li><strong>busy_timeout:</strong> 짧은 lock 충돌에서 즉시 실패하는 것을 줄인다.</li>
+  </ul>
+
+  <p>
+    <code>sqlx migrate</code>로 schema version을 관리하고,
+    애플리케이션 시작 시 필요한 PRAGMA가 실제 connection에 적용됐는지 검증한다.
+  </p>
+
+  <h3>13.6 백업</h3>
+  <p>
+    실행 중인 WAL database를 단순히 <code>cp leviathan.db</code>로 복사하는 방식을 live backup으로 사용하지 않는다.
+    SQLite Online Backup API 또는 CLI의 <code>.backup</code>을 사용한다.
+  </p>
+
+  <pre><code>sqlite3 leviathan.db ".backup backups/leviathan-2026-08-09.db"</code></pre>
+
+  <p>
+    Core Ledger는 재생성할 수 없는 유일한 실행 기록이므로, live trading 단계에서는 자동 일일 backup과
+    일정 개수의 rolling retention을 기본 운영 정책으로 둔다.
+    <strong>Artifact Referential Integrity</strong>: DB에서 하나 이상의 persistent record가 참조하는 artifact는 삭제할 수 없다. Artifact GC는 DB에서 참조되지 않는 object만 대상으로 하며, backup/restore 및 정기 integrity verification 시 파일 존재 여부와 content hash를 검증한다.
+  </p>
+
+  <h3>13.7 초기 Schema</h3>
+  <pre><code>runs
+cycles
+goals
+goal_feasibility_snapshots
+glide_path_snapshots
+
+instruments
+price_snapshots
+fundamental_snapshots
+news_items
+macro_snapshots
+artifacts
+
+screening_results
+research_contexts
+llm_decisions
+grounding_checks
+prompt_versions
+eval_runs
+
+portfolio_targets
+trade_proposals
+order_intents
+orders
+fills
+positions
+portfolio_snapshots
+reconciliation_runs
+
+risk_budget_snapshots
+risk_decisions
+generated_reports
+
+schedules
+llm_usage_daily
+backup_generations
+
+account_allocations
+cash_reservations</code></pre>
+
+  <p>
+    모든 LLM decision에는 <strong>timestamp, exact supplied context reference, provider/model,
+    prompt version, schema version, raw structured response, validation result</strong>를 남긴다.
+    재무 데이터는 restatement로 인한 미래정보 누수를 막기 위해 effective timestamp/revision을 포함하는
+    point-in-time 데이터 계약을 따른다.
+  </p>
+
+  <h3>13.8 언제 SQLite를 벗어나는가</h3>
+  <p>
+    DB 교체는 선제적으로 하지 않고 실제 workload가 필요성을 증명할 때 진행한다.
+  </p>
+  <ul>
+    <li>여러 독립 프로세스가 지속적으로 동시에 write하기 시작할 때.</li>
+    <li>틱 단위 또는 대규모 분봉 데이터를 장기간 저장해 analytical scan이 커질 때.</li>
+    <li>여러 기기/원격 환경에서 동일 DB에 접근해야 할 때.</li>
+    <li>대규모 research query가 operational trading query의 latency를 방해하기 시작할 때.</li>
+  </ul>
+
+  <p>
+    마지막 경우에는 operational DB 전체를 즉시 PostgreSQL로 옮기기보다,
+    먼저 <strong>SQLite = operational / DuckDB+Parquet = analytical</strong> 형태로 분리하는 것을 우선 고려한다.
+  </p>
+
+  <pre><code>Stage 1~N
+SQLite
+└─ operational + moderate market data
+
+If analytical workload grows:
+SQLite
+└─ ledger / decisions / orders / live state
+
+DuckDB + Parquet
+└─ bulk history / factor research / large scans
+
+If concurrency/distribution grows:
+PostgreSQL
+└─ operational store replacement</code></pre>
+
+  <div class="callout purple">
+    <strong>Migration principle:</strong>
+    storage access는 repository boundary 뒤에 숨긴다.
+    초기에는 SQLite implementation만 제공하고, 실제 필요가 생길 때
+    analytical store 또는 PostgreSQL implementation을 추가한다.
+    데이터베이스 선택이 core trading domain을 오염시키지 않게 한다.
+  </div>
+<h2 id="runtime">14. 기술 스택 / Runtime</h2>
+  <table>
+    <thead><tr><th>영역</th><th>기술</th><th>역할</th></tr></thead>
+    <tbody>
+      <tr><td>Core domain</td><td>Rust</td><td>portfolio, risk, ledger, execution, scheduler, broker abstraction</td></tr>
+      <tr><td>Async / HTTP</td><td>Tokio, Reqwest</td><td>market/broker API, scheduler, async jobs</td></tr>
+      <tr><td>CLI</td><td>Clap</td><td>interactive commands and operations</td></tr>
+      <tr><td>Serialization</td><td>Serde</td><td>domain/event/config schema</td></tr>
+      <tr><td>Operational DB</td><td>SQLite + SQLx</td><td>ledger, decisions, risk, broker state, moderate market data</td></tr>
+      <tr><td>Future analytical store</td><td>DuckDB + Parquet (optional)</td><td>대규모 history/factor scan이 SQLite 운영 workload를 방해할 때만 도입</td></tr>
+      <tr><td>Logging</td><td>tracing</td><td>structured logs / auditability</td></tr>
+      <tr><td>LLM / research</td><td>Python</td><td>model routing, prompts, data analysis, reports</td></tr>
+      <tr><td>Python schema</td><td>Pydantic</td><td>LLM structured output validation</td></tr>
+      <tr><td>Quant</td><td>pandas / numpy</td><td>screening, statistics, Monte Carlo prototype</td></tr>
+      <tr><td>IPC</td><td>subprocess JSON → Unix socket later</td><td>Rust ↔ Python</td></tr>
+      <tr><td>OS</td><td>Linux</td><td>local-only initial runtime; systemd optional</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Repository</h3>
+  <pre><code>leviathan/
+├─ Cargo.toml
+├─ config/
+│  ├─ default.toml
+│  ├─ models.toml
+│  ├─ risk.toml
+│  └─ brokers.toml
+├─ crates/
+│  ├─ leviathan-cli/
+│  ├─ leviathan-core/
+│  ├─ leviathan-goal/
+│  ├─ leviathan-portfolio/
+│  ├─ leviathan-risk/
+│  ├─ leviathan-execution/
+│  ├─ leviathan-broker/
+│  ├─ leviathan-broker-paper/
+│  ├─ leviathan-broker-kis/
+│  ├─ leviathan-data/
+│  ├─ leviathan-storage/
+│  └─ leviathan-artifacts/
+├─ python/
+│  ├─ pyproject.toml
+│  └─ leviathan_ai/
+│     ├─ router.py
+│     ├─ screening.py
+│     ├─ research.py
+│     ├─ grounding.py
+│     ├─ goal_analysis.py
+│     ├─ strategy.py
+│     ├─ eval.py
+│     ├─ reporting.py
+│     ├─ schemas.py
+│     └─ prompts/
+├─ migrations/
+├─ reports/
+├─ data/
+└─ tests/</code></pre>
+
+  <h2 id="cli">15. CLI</h2>
+  <pre><code>leviathan init
+leviathan new
+leviathan plan &lt;run-id&gt;
+leviathan start &lt;run-id&gt;
+leviathan tick &lt;run-id&gt;
+leviathan status &lt;run-id&gt;
+leviathan decisions &lt;run-id&gt;
+leviathan trades &lt;run-id&gt;
+leviathan report &lt;run-id&gt;
+leviathan eval
+leviathan stop &lt;run-id&gt;
+
+leviathan broker list
+leviathan broker connect kis
+leviathan broker connect hana
+leviathan account sync
+leviathan reconcile
+
+leviathan execute --paper
+leviathan execute --approval-required
+leviathan execute --limited-auto
+
+leviathan kill
+leviathan resume
+
+leviathan schedule show &lt;run-id&gt;
+leviathan schedule set &lt;run-id&gt;
+leviathan usage
+leviathan backup
+leviathan restore-check</code>
+</pre>
+
+  <h2 id="scheduler">16. Scheduler / Decision Cadence</h2>
+  <p>
+    자동 실행 주기는 단순한 운영 옵션이 아니라 <strong>전략 정의의 일부</strong>다.
+    판단 주기는 LLM 호출 비용, 데이터 신선도, 거래 빈도, turnover, glide path 평가 빈도에 모두 영향을 준다.
+    따라서 각 run은 생성 시 명시적인 cadence policy를 가진다.
+  </p>
+
+  <h3>16.1 기본 원칙</h3>
+  <ul>
+    <li>v1의 기본은 <strong>low-frequency</strong>다. HFT나 tick-driven execution은 목표로 하지 않는다.</li>
+    <li>Research/decision cadence와 execution/rebalance cadence를 분리할 수 있다.</li>
+    <li>Goal glide path는 일 단위 기준점을 갖고, intraday cycle마다 무의미하게 목표 편차를 다시 해석하지 않는다.</li>
+    <li>동일 run의 동일 scheduled slot은 한 번만 실행되도록 idempotent cycle key를 사용한다.</li>
+    <li>시장 휴장일, 조기 폐장, 데이터 미수신 시에는 거래 대신 명시적 SKIPPED 상태를 기록한다.</li>
+  </ul>
+
+  <h3>16.2 권장 초기 cadence</h3>
+  <pre><code>Daily
+├─ pre-market research cycle     1회
+├─ market-open execution         필요 시 1회
+├─ optional midday risk check    0~1회
+└─ end-of-day evaluation         1회
+
+Weekly
+└─ strategic portfolio review
+
+Monthly
+└─ goal feasibility + glide path re-evaluation</code></pre>
+
+  <p>
+    초기 paper 단계에서는 하루 1회의 full LLM decision cycle부터 시작하고,
+    성능·비용·데이터 품질을 확인한 뒤 필요한 경우에만 intraday cycle을 추가한다.
+  </p>
+
+  <h3>16.3 Cadence Configuration</h3>
+  <pre><code>[schedule]
+timezone = "Asia/Seoul"
+decision = "daily"
+decision_time = "08:40"
+rebalance = "daily"
+evaluation_time = "16:10"
+
+[strategy_review]
+frequency = "weekly"
+
+[goal_review]
+frequency = "monthly"</code></pre>
+
+  <p>
+    실제 broker 시장 시간은 market calendar abstraction을 통해 계산하고,
+    cron 문자열만으로 시장 개장 여부를 추정하지 않는다.
+  </p>
+
+  <h3>16.4 Cost와 cadence의 연결</h3>
+  <p>
+    ModelRouter는 호출 건별 비용을 기록하고 scheduler는 run별 호출 횟수를 예측한다.
+    계획 단계에서 예상 월간 LLM 비용을 함께 보여주며, cadence 변경 시 예상 비용도 재계산한다.
+  </p>
+
+  <pre><code>estimated_monthly_llm_cost
+=
+scheduled_cycles_per_month
+× expected_calls_per_cycle
+× expected_cost_per_call</code></pre>
+
+  <div class="callout">
+    <strong>초기 권장:</strong> full decision cycle은 하루 1회.
+    뉴스 수집·정량 필터는 더 자주 돌아도 되지만, expensive model을 매번 호출할 필요는 없다.
+  </div>
+
+  <h2 id="reliability">17. 운영 안정성 / 보안 / 재해복구</h2>
+  <ul>
+    <li><strong>LLM failure:</strong> timeout + bounded retry + exponential backoff → HOLD.</li>
+    <li><strong>LLM cost circuit breaker:</strong> run별/일별 API spend ceiling과 호출 횟수 상한을 둔다. soft limit 도달 시 경고, hard limit 도달 시 expensive LLM 호출을 중단하고 HOLD 또는 deterministic fallback으로 전환한다.</li>
+    <li><strong>Data staleness:</strong> freshness threshold 초과 시 cycle skip.</li>
+    <li><strong>Idempotency:</strong> 모든 live OrderIntent에 unique key를 부여해 재시작/timeout 시 중복 주문 방지.</li>
+    <li><strong>Partial fill:</strong> fill 단위로 ledger 반영, target과 실제 position 차이를 재계산.</li>
+    <li><strong>Reconciliation:</strong> broker positions/orders/fills와 local state 불일치 시 자동매매 중단.</li>
+    <li><strong>Kill switch:</strong> paper 단계부터 구현하고 live에서는 신규 주문 차단 + 상태 snapshot 저장.</li>
+    <li><strong>Secrets:</strong> API key는 repository에 저장하지 않고 OS keyring 또는 제한된 local secret store 사용.</li>
+    <li><strong>Logging:</strong> broker credential과 token은 마스킹하고 decision/order audit trail은 보존.</li>
+    <li><strong>LLM isolation:</strong> LLM process에는 broker credential을 전달하지 않는다.</li>
+    <li><strong>Automated backup:</strong> Phase 1부터 SQLite Online Backup API/.backup을 사용해 정기 snapshot을 생성한다.</li>
+    <li><strong>Off-disk copy:</strong> 같은 디스크의 backup만으로는 재해복구가 되지 않으므로, live 전에는 최소 하나의 별도 물리 매체 또는 암호화된 원격 저장 위치에 backup을 복제한다.</li>
+    <li><strong>Artifact backup:</strong> DB가 참조하는 immutable context/news artifacts도 DB backup과 함께 backup generation ID를 기준으로 보존한다.</li>
+    <li><strong>Restore drill:</strong> backup이 존재하는 것만 확인하지 않고, 정기적으로 새 디렉터리에 복원해 ledger replay와 artifact hash 검증이 성공하는지 테스트한다.</li>
+  </ul>
+
+  
+  <h3>17.1 Backup / Disaster Recovery Policy</h3>
+  <pre><code>Primary
+data/leviathan.db
+data/artifacts/
+
+        │ scheduled snapshot
+        ▼
+
+Local backup generation
+backups/2026-08-09/
+├─ leviathan.db
+└─ manifest.json
+
+        │ replicated
+        ▼
+
+Independent backup target
+└─ encrypted removable disk or remote object storage</code></pre>
+
+  <p>
+    각 backup generation에는 DB snapshot 시각과 필요한 artifact hash 목록을 manifest로 남긴다.
+    복구 성공 기준은 단순히 DB 파일이 열리는 것이 아니라,
+    <strong>cycle → decision → evidence → order/fill</strong> reference chain을 재구성할 수 있는 것이다.
+  </p>
+
+  <div class="callout warning">
+    Core Ledger가 source of truth라면 백업은 운영 부가 기능이 아니라 correctness의 일부다.
+    따라서 backup job과 restore test는 Phase 1부터 개발 환경에서도 실행한다.
+  </div>
+
+  <h2 id="accounts">18. Multi-Run / Account Allocation</h2>
+  <p>
+    하나의 Leviathan 프로세스에서 여러 run을 동시에 운영할 수 있지만,
+    live trading에서 두 run이 동일 broker account를 공유할 경우
+    <strong>cash와 exposure ownership</strong>을 명시적으로 정의해야 한다.
+  </p>
+
+  <h3>18.1 기본 정책</h3>
+  <p>
+    초기 live 버전에서는 단순성과 안전성을 위해 <strong>1 live run = 1 account allocation</strong>을 기본으로 한다.
+    다만 실제 broker account 자체를 run마다 새로 만들 필요는 없으며,
+    하나의 실계좌 안에서 Leviathan이 관리하는 virtual allocation을 둘 수 있다.
+  </p>
+
+  <pre><code>Broker Account
+├─ account cash
+├─ external/manual positions
+└─ Leviathan allocations
+   ├─ allocation A → run-001
+   └─ allocation B → run-002</code></pre>
+
+  <h3>18.2 Account-level Risk가 최종 권위</h3>
+  <p>
+    run별 virtual cash가 충분해 보여도 실제 계좌 전체의 available cash와 exposure가 부족하면 주문할 수 없다.
+    따라서 두 단계 검사를 수행한다.
+  </p>
+
+  <pre><code>Run-level check
+├─ allocated_cash
+├─ run reserved_cash
+├─ run position limits
+└─ run drawdown
+
+        ↓ pass
+
+Account-level check
+├─ broker available_cash
+├─ total reserved_cash across runs
+├─ total account exposure
+├─ external/manual positions
+└─ account-wide hard limits
+
+        ↓ pass
+
+OrderIntent</code></pre>
+
+  <p>
+    <code>reserved_cash</code>는 물리적으로 account-level reservation ledger에서 관리하고
+    각 reservation이 <code>run_id</code> 또는 <code>allocation_id</code>를 소유하도록 한다.
+    이렇게 해야 두 run이 같은 현금을 동시에 쓸 수 없다.
+  </p>
+
+  <h3>18.3 초기 구현 범위</h3>
+  <ul>
+    <li>Paper 단계: 여러 run 허용, 각 run에 독립 virtual account 사용.</li>
+    <li>Assisted Live 초기: 하나의 broker account에 하나의 active live allocation만 허용해 복잡성을 제한.</li>
+    <li>Multi-run live가 필요해질 때: <code>account_allocations</code>, <code>cash_reservations</code>, account-level risk ledger 추가.</li>
+    <li>사용자가 broker 앱에서 수동 거래한 포지션도 reconciliation 시 account-level exposure에 포함.</li>
+  </ul>
+
+  <div class="callout">
+    이 설계는 지금 당장 multi-run live를 구현하겠다는 뜻이 아니라,
+    <strong>reserved cash의 최종 소유권은 run이 아니라 실제 account</strong>라는 invariant를 미리 확정하는 것이다.
+  </div>
+
+  <h2 id="testing">19. 테스트 전략</h2>
+  <ul>
+    <li><strong>Property-based accounting tests:</strong> cash + position value = NAV, fill conservation, no impossible balances.</li>
+    <li><strong>Risk boundary tests:</strong> 한도 직전/직후, envelope transition, drawdown halt.</li>
+    <li><strong>Broker contract tests:</strong> Paper/KIS/Hana adapter가 동일한 Broker semantics를 만족하는지 검증.</li>
+    <li><strong>Execution failure tests:</strong> timeout, duplicate response, rejected order, partial fill, restart.</li>
+    <li><strong>Cycle recovery tests:</strong> 각 state transition 직후 crash를 가정하고 재시작 시 중복 없이 이어지는지 검증.</li>
+    <li><strong>SQLite integration tests:</strong> WAL/read concurrency, FK violation, busy timeout, migration, backup/restore 검증.</li>
+    <li><strong>Scheduler tests:</strong> market holiday, timezone/DST, duplicate scheduled slot, missed cycle recovery.</li>
+    <li><strong>LLM budget tests:</strong> retry storm과 hard spend limit 도달 시 추가 호출이 차단되는지 검증.</li>
+    <li><strong>Account allocation tests:</strong> 두 run이 동일 cash를 동시에 reserve하지 못하는지 검증.</li>
+    <li><strong>Disaster recovery drill:</strong> DB + artifact backup에서 새 환경으로 restore 후 ledger replay 검증.</li>
+    <li><strong>LLM schema tests:</strong> malformed JSON, invalid symbol, unsupported fact, retry/HOLD fallback.</li>
+    <li><strong>Historical deterministic replay:</strong> stand-in strategy로 전체 pipeline regression.</li>
+    <li><strong>Forward paper eval:</strong> 실제 decision performance와 benchmark 비교.</li>
+    <li><strong>Prompt regression eval:</strong> 동일 저장 context에 대해 model/prompt 버전별 parse/cost/signal 변화 비교.</li>
+  </ul>
+
+  <h2 id="roadmap">20. 단계별 로드맵</h2>
+  <table>
+    <thead><tr><th>Phase</th><th>목표</th><th>완료 기준</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>Core Domain & SQLite Ledger</td><td>회계, portfolio, order/fill domain + cycle state machine + migrations + invariant tests + automated backup/restore drill.</td></tr>
+      <tr><td>2</td><td>Point-in-Time Data & Screening</td><td>SQLite 기반 market snapshot/revision 저장, artifact filesystem, Quant Pre-Filter.</td></tr>
+      <tr><td>3</td><td>LLM Intelligence</td><td>ModelRouter, structured signals, grounding, fail-closed behavior.</td></tr>
+      <tr><td>4</td><td>Portfolio / Risk Construction</td><td>deterministic Portfolio Constructor + Goal/Risk Budget Controller.</td></tr>
+      <tr><td>5</td><td>Paper Execution</td><td>explicit scheduler/cadence policy + scheduled forward paper trading + LLM budget circuit breaker + benchmark + reports + kill switch.</td></tr>
+      <tr><td>6</td><td>Eval Harness</td><td>forward context replay, prompt/model regression metrics.</td></tr>
+      <tr><td>7</td><td>Broker Abstraction</td><td>PaperBroker가 core와 완전히 trait 경계로 분리.</td></tr>
+      <tr><td>8</td><td>Broker Sandbox</td><td>KIS 또는 선택 broker 모의 API로 order lifecycle 검증.</td></tr>
+      <tr><td>9</td><td>Assisted Live</td><td>실계좌 sync + approval-required orders + reconciliation + account/allocation ownership invariant 확정.</td></tr>
+      <tr><td>10</td><td>Controlled Live</td><td>소액/사전승인 universe/risk envelope 내 자동 실행.</td></tr>
+      <tr><td>11</td><td>Multi-Broker / Multi-Run</td><td>두 번째 adapter 추가 시 core 무수정 + 필요 시 account_allocations/cash_reservations로 동일 계좌 내 복수 run 지원.</td></tr>
+      <tr><td>12</td><td>Mature Leviathan</td><td>multi-market, model/provider switching, shadow portfolio, long-term adaptation.</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Live Trading Gate</h3>
+  <p>기간이 아니라 아래 조건 충족 여부로 live 전환을 결정한다.</p>
+  <ul>
+    <li>Order/Fill/Portfolio state를 ledger에서 완전히 replay 가능.</li>
+    <li>중복 주문 방지 idempotency와 crash recovery 검증.</li>
+    <li>rejected/partial fill/timeout/stale quote 대응 검증.</li>
+    <li>broker reconciliation 자동화.</li>
+    <li>LLM 및 데이터 장애 시 신규 거래 없이 정지.</li>
+    <li>Risk Engine이 LLM과 독립적으로 모든 hard limit 강제.</li>
+    <li>forward paper 결과가 benchmark 및 baseline과 비교 가능.</li>
+  </ul>
+
+  <h2 id="success">21. 성공 기준</h2>
+  <p>Leviathan의 성공은 단순히 “돈을 벌었다”가 아니다.</p>
+  <ul>
+    <li>당시 이용 가능한 정보만으로 모든 decision을 설명·재현할 수 있다.</li>
+    <li>LLM의 실제 기여를 deterministic baseline과 분리해 측정할 수 있다.</li>
+    <li>같은 신호와 같은 snapshot에서 동일한 portfolio target이 생성된다.</li>
+    <li>LLM이 이상한 결정을 내려도 위험 한도를 넘는 주문은 생성되지 않는다.</li>
+    <li>Paper와 Live가 동일한 core를 사용하고 Broker만 교체된다.</li>
+    <li>새 broker/model/data provider 추가가 핵심 domain 수정으로 이어지지 않는다.</li>
+    <li>실계좌와 내부 ledger 차이를 탐지하고 fail-safe 상태로 전환할 수 있다.</li>
+    <li>SQLite backup 하나와 artifact directory만으로 특정 시점의 실행 상태와 판단 근거를 복구할 수 있다.</li>
+    <li>자동 scheduler가 동일 cycle을 중복 실행하지 않고, cadence와 예상 LLM 비용이 run 설정으로 재현 가능하다.</li>
+    <li>API retry storm이 발생해도 일일 LLM 비용 hard limit을 초과하지 않는다.</li>
+    <li>복수 run이 동일 실계좌를 공유하더라도 cash reservation과 account-level exposure가 이중 계산되지 않는다.</li>
+    <li>주기적인 restore drill을 통해 ledger와 evidence chain의 실제 복구 가능성이 검증된다.</li>
+    <li>장기간 forward history를 통해 전략·모델·비용·리스크를 지속 평가할 수 있다.</li>
+  </ul>
+
+  <div class="callout purple">
+    <strong>핵심 연구 질문</strong><br/>
+    LLM에게 단순히 주가를 예측하게 하는 것이 아니라, 현재 시점에 이용 가능한 다양한 정보를 종합하여
+    목표에 맞는 투자 신호와 전략 구성을 동적으로 생성하게 했을 때, 결정론적 risk/portfolio/execution
+    계층과 결합하여 단순한 systematic baseline보다 더 나은 risk-adjusted decision making을
+    지속적으로 보여줄 수 있는가?
+  </div>
+
+  <div class="footer">
+    Leviathan · Final Blueprint v1.0 · Rust + Python · Linux CLI · Paper-to-Live · Modular Broker / Model / Data Architecture
+  </div>
+</main>
+</body>
+</html>
