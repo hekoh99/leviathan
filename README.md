@@ -45,15 +45,15 @@ It does not yet implement:
 ## Quick Start
 
 ```bash
-    cargo run --manifest-path core/Cargo.toml -p leviathan-cli
-    python3 intelligence/src/leviathan_ai/service.py
+cargo run --manifest-path core/Cargo.toml -p leviathan-cli
+python3 intelligence/src/leviathan_ai/service.py
 ```
 
 ## Verification
 ```bash
-    cargo run --manifest-path core/Cargo.toml -p leviathan-cli
-    cargo test --manifest-path core/Cargo.toml
-    python3 intelligence/src/leviathan_ai/service.py
+cargo run --manifest-path core/Cargo.toml -p leviathan-cli
+cargo test --manifest-path core/Cargo.toml
+python3 intelligence/src/leviathan_ai/service.py
 ```
 
 
