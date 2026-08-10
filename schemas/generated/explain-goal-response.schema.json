@@ -1,0 +1,43 @@
+{
+  "$defs": {
+    "ContractVersion": {
+      "enum": [
+        "V1"
+      ],
+      "type": "string"
+    },
+    "ExplainGoalResponse": {
+      "properties": {
+        "alternatives": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "summary": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "summary",
+        "alternatives"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "properties": {
+    "payload": {
+      "$ref": "#/$defs/ExplainGoalResponse"
+    },
+    "version": {
+      "$ref": "#/$defs/ContractVersion"
+    }
+  },
+  "required": [
+    "version",
+    "payload"
+  ],
+  "title": "Envelope",
+  "type": "object"
+}

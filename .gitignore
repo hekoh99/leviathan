@@ -1,0 +1,9 @@
+/target
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+*.db
+*.sqlite
+backups/
+.DS_Store

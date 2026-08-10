@@ -1,0 +1,14 @@
+[package]
+name = "leviathan-contracts"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+leviathan-domain.workspace = true
+schemars.workspace = true
+serde.workspace = true
+serde_json.workspace = true

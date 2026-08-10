@@ -1,0 +1,12 @@
+[package]
+name = "leviathan-execution"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+leviathan-domain.workspace = true
+leviathan-risk.workspace = true

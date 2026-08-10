@@ -1,0 +1,32 @@
+[workspace]
+members = [
+    "crates/leviathan-app",
+    "crates/leviathan-broker",
+    "crates/leviathan-cli",
+    "crates/leviathan-contracts",
+    "crates/leviathan-domain",
+    "crates/leviathan-execution",
+    "crates/leviathan-goal",
+    "crates/leviathan-risk",
+    "crates/leviathan-storage",
+]
+resolver = "2"
+
+[workspace.package]
+edition = "2024"
+license = "MIT"
+version = "0.1.0"
+authors = ["Leviathan"]
+
+[workspace.dependencies]
+schemars = "1"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+leviathan-app = { path = "crates/leviathan-app" }
+leviathan-broker = { path = "crates/leviathan-broker" }
+leviathan-contracts = { path = "crates/leviathan-contracts" }
+leviathan-domain = { path = "crates/leviathan-domain" }
+leviathan-execution = { path = "crates/leviathan-execution" }
+leviathan-goal = { path = "crates/leviathan-goal" }
+leviathan-risk = { path = "crates/leviathan-risk" }
+leviathan-storage = { path = "crates/leviathan-storage" }

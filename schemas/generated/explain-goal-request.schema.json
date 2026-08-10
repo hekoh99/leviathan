@@ -1,0 +1,81 @@
+{
+  "$defs": {
+    "ContractVersion": {
+      "enum": [
+        "V1"
+      ],
+      "type": "string"
+    },
+    "ExplainGoalRequest": {
+      "properties": {
+        "goal": {
+          "$ref": "#/$defs/GoalSpec"
+        },
+        "required_cagr": {
+          "format": "double",
+          "type": "number"
+        },
+        "success_probability": {
+          "format": "double",
+          "type": "number"
+        }
+      },
+      "required": [
+        "goal",
+        "required_cagr",
+        "success_probability"
+      ],
+      "type": "object"
+    },
+    "GoalSpec": {
+      "properties": {
+        "initial_capital": {
+          "format": "int64",
+          "type": "integer"
+        },
+        "risk_profile": {
+          "$ref": "#/$defs/RiskProfile"
+        },
+        "target_days": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "target_value": {
+          "format": "int64",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "initial_capital",
+        "target_value",
+        "target_days",
+        "risk_profile"
+      ],
+      "type": "object"
+    },
+    "RiskProfile": {
+      "enum": [
+        "Conservative",
+        "Moderate",
+        "Aggressive"
+      ],
+      "type": "string"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "properties": {
+    "payload": {
+      "$ref": "#/$defs/ExplainGoalRequest"
+    },
+    "version": {
+      "$ref": "#/$defs/ContractVersion"
+    }
+  },
+  "required": [
+    "version",
+    "payload"
+  ],
+  "title": "Envelope",
+  "type": "object"
+}

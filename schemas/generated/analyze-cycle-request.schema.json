@@ -1,0 +1,109 @@
+{
+  "$defs": {
+    "AnalyzeCycleRequest": {
+      "properties": {
+        "candidate_count": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "goal": {
+          "$ref": "#/$defs/GoalSpec"
+        },
+        "risk_budget": {
+          "$ref": "#/$defs/RiskBudget"
+        }
+      },
+      "required": [
+        "goal",
+        "risk_budget",
+        "candidate_count"
+      ],
+      "type": "object"
+    },
+    "ContractVersion": {
+      "enum": [
+        "V1"
+      ],
+      "type": "string"
+    },
+    "GoalSpec": {
+      "properties": {
+        "initial_capital": {
+          "format": "int64",
+          "type": "integer"
+        },
+        "risk_profile": {
+          "$ref": "#/$defs/RiskProfile"
+        },
+        "target_days": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "target_value": {
+          "format": "int64",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "initial_capital",
+        "target_value",
+        "target_days",
+        "risk_profile"
+      ],
+      "type": "object"
+    },
+    "RiskBudget": {
+      "properties": {
+        "cash_floor": {
+          "format": "uint16",
+          "maximum": 65535,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "max_drawdown_limit": {
+          "format": "uint16",
+          "maximum": 65535,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "max_single_position": {
+          "format": "uint16",
+          "maximum": 65535,
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "max_single_position",
+        "cash_floor",
+        "max_drawdown_limit"
+      ],
+      "type": "object"
+    },
+    "RiskProfile": {
+      "enum": [
+        "Conservative",
+        "Moderate",
+        "Aggressive"
+      ],
+      "type": "string"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "properties": {
+    "payload": {
+      "$ref": "#/$defs/AnalyzeCycleRequest"
+    },
+    "version": {
+      "$ref": "#/$defs/ContractVersion"
+    }
+  },
+  "required": [
+    "version",
+    "payload"
+  ],
+  "title": "Envelope",
+  "type": "object"
+}

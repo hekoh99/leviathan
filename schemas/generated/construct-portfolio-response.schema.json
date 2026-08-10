@@ -1,0 +1,73 @@
+{
+  "$defs": {
+    "ConstructPortfolioResponse": {
+      "properties": {
+        "target": {
+          "$ref": "#/$defs/PortfolioTarget"
+        }
+      },
+      "required": [
+        "target"
+      ],
+      "type": "object"
+    },
+    "ContractVersion": {
+      "enum": [
+        "V1"
+      ],
+      "type": "string"
+    },
+    "PortfolioTarget": {
+      "properties": {
+        "cash_weight": {
+          "format": "uint16",
+          "maximum": 65535,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "weights": {
+          "items": {
+            "maxItems": 2,
+            "minItems": 2,
+            "prefixItems": [
+              {
+                "$ref": "#/$defs/Symbol"
+              },
+              {
+                "format": "uint16",
+                "maximum": 65535,
+                "minimum": 0,
+                "type": "integer"
+              }
+            ],
+            "type": "array"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "weights",
+        "cash_weight"
+      ],
+      "type": "object"
+    },
+    "Symbol": {
+      "type": "string"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "properties": {
+    "payload": {
+      "$ref": "#/$defs/ConstructPortfolioResponse"
+    },
+    "version": {
+      "$ref": "#/$defs/ContractVersion"
+    }
+  },
+  "required": [
+    "version",
+    "payload"
+  ],
+  "title": "Envelope",
+  "type": "object"
+}

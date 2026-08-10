@@ -1,0 +1,177 @@
+{
+  "$defs": {
+    "CandidateSignal": {
+      "properties": {
+        "conviction": {
+          "format": "uint8",
+          "maximum": 255,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "horizon_days": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "key_risks": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "suggested_weight_band": {
+          "maxItems": 2,
+          "minItems": 2,
+          "prefixItems": [
+            {
+              "format": "uint16",
+              "maximum": 65535,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "format": "uint16",
+              "maximum": 65535,
+              "minimum": 0,
+              "type": "integer"
+            }
+          ],
+          "type": "array"
+        },
+        "symbol": {
+          "$ref": "#/$defs/Symbol"
+        },
+        "thesis": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "symbol",
+        "conviction",
+        "suggested_weight_band",
+        "horizon_days",
+        "thesis",
+        "key_risks"
+      ],
+      "type": "object"
+    },
+    "ConstructPortfolioRequest": {
+      "properties": {
+        "risk_budget": {
+          "$ref": "#/$defs/RiskBudget"
+        },
+        "signal": {
+          "$ref": "#/$defs/CycleSignal"
+        }
+      },
+      "required": [
+        "signal",
+        "risk_budget"
+      ],
+      "type": "object"
+    },
+    "ContractVersion": {
+      "enum": [
+        "V1"
+      ],
+      "type": "string"
+    },
+    "CycleSignal": {
+      "properties": {
+        "candidates": {
+          "items": {
+            "$ref": "#/$defs/CandidateSignal"
+          },
+          "type": "array"
+        },
+        "cash_weight_hint": {
+          "maxItems": 2,
+          "minItems": 2,
+          "prefixItems": [
+            {
+              "format": "uint16",
+              "maximum": 65535,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "format": "uint16",
+              "maximum": 65535,
+              "minimum": 0,
+              "type": "integer"
+            }
+          ],
+          "type": "array"
+        },
+        "confidence": {
+          "format": "double",
+          "type": "number"
+        },
+        "market_regime": {
+          "$ref": "#/$defs/MarketRegime"
+        }
+      },
+      "required": [
+        "market_regime",
+        "candidates",
+        "cash_weight_hint",
+        "confidence"
+      ],
+      "type": "object"
+    },
+    "MarketRegime": {
+      "enum": [
+        "RiskOff",
+        "Neutral",
+        "RiskOn"
+      ],
+      "type": "string"
+    },
+    "RiskBudget": {
+      "properties": {
+        "cash_floor": {
+          "format": "uint16",
+          "maximum": 65535,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "max_drawdown_limit": {
+          "format": "uint16",
+          "maximum": 65535,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "max_single_position": {
+          "format": "uint16",
+          "maximum": 65535,
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "max_single_position",
+        "cash_floor",
+        "max_drawdown_limit"
+      ],
+      "type": "object"
+    },
+    "Symbol": {
+      "type": "string"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "properties": {
+    "payload": {
+      "$ref": "#/$defs/ConstructPortfolioRequest"
+    },
+    "version": {
+      "$ref": "#/$defs/ContractVersion"
+    }
+  },
+  "required": [
+    "version",
+    "payload"
+  ],
+  "title": "Envelope",
+  "type": "object"
+}

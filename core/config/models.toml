@@ -1,0 +1,23 @@
+[tasks.news_classification]
+tier = "cheap"
+provider = "placeholder"
+model = "placeholder-cheap"
+fallback = "rules"
+
+[tasks.regime_analysis]
+tier = "mid"
+provider = "placeholder"
+model = "placeholder-mid"
+fallback = "hold_previous"
+
+[tasks.final_signal]
+tier = "strong"
+provider = "placeholder"
+model = "placeholder-strong"
+fallback = "hold"
+
+[tasks.goal_explanation]
+tier = "strong"
+provider = "placeholder"
+model = "placeholder-strong"
+fallback = "numeric_only"

@@ -1,0 +1,14 @@
+[package]
+name = "leviathan-cli"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "leviathan"
+path = "src/main.rs"
+
+[dependencies]
+leviathan-app.workspace = true
+leviathan-domain.workspace = true
+leviathan-goal.workspace = true
