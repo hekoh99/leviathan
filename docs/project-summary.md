@@ -13,14 +13,6 @@ Leviathan is intended to be a personal Linux CLI trading platform that starts fr
 
 It then evaluates whether that goal is realistic, builds a risk budget for the current cycle, screens the market, asks the intelligence layer for constrained signals, and passes those signals through deterministic portfolio, risk, and execution code.
 
-## Non-Negotiable Design Rules
-
-- LLMs do not own final numbers such as exact position weights.
-- Deterministic code owns risk limits, target weights, order permission, execution state, and accounting.
-- The intelligence service is stateless and must not write to the database or call brokers directly.
-- The system fails closed. If data is stale, schema validation fails, or the model layer fails, the default outcome is `HOLD`.
-- The core must remain broker-independent.
-
 ## Target Architecture
 
 1. User goal
@@ -35,6 +27,14 @@ It then evaluates whether that goal is realistic, builds a risk budget for the c
 10. Execution policy and router
 11. Broker adapter
 12. Ledger, reports, evaluation, and next cycle
+
+## Non-Negotiable Design Rules
+
+- LLMs do not own final numbers such as exact position weights.
+- Deterministic code owns risk limits, target weights, order permission, execution state, and accounting.
+- The intelligence service is stateless and must not write to the database or call brokers directly.
+- The system fails closed. If data is stale, schema validation fails, or the model layer fails, the default outcome is `HOLD`.
+- The core must remain broker-independent.
 
 ## Implementation Direction
 
