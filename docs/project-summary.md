@@ -43,6 +43,13 @@ It then evaluates whether that goal is realistic, builds a risk budget for the c
 - SQLite: operational store
 - Shared schemas: generated from Rust contracts and consumed read-only from Python
 
+## Phase Priorities Reflected In This Scaffold
+
+- Phase 1: core workspace boundaries
+- Phase 2: placeholders for research and screening boundaries
+- Phase 3: explicit contracts boundary between Rust and Python
+- Phase 4: execution mode and risk budget placeholders
+
 ## Recommended Early Build Order
 
 1. Core domain model and ledger invariants
@@ -51,10 +58,3 @@ It then evaluates whether that goal is realistic, builds a risk budget for the c
 4. Deterministic portfolio constructor minimum version
 5. Basic quant pre-filter
 6. Paper execution path
-
-## Phase Priorities Reflected In This Scaffold
-
-- Phase 1: core workspace boundaries
-- Phase 2: placeholders for research and screening boundaries
-- Phase 3: explicit contracts boundary between Rust and Python
-- Phase 4: execution mode and risk budget placeholders
