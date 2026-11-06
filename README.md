@@ -22,6 +22,26 @@ docs/           Extracted project summary and implementation notes
 xtask/          Developer automation placeholder
 ```
 
+## Quick Start
+
+```bash
+cargo run --manifest-path core/Cargo.toml -p leviathan-cli
+python3 intelligence/src/leviathan_ai/service.py
+```
+
+## Verification
+```bash
+cargo run --manifest-path core/Cargo.toml -p leviathan-cli
+cargo test --manifest-path core/Cargo.toml
+python3 intelligence/src/leviathan_ai/service.py
+```
+
+## Source Documents
+
+- `leviathan_final_blueprint_v1.html`
+- `leviathan_implementation_plan.html`
+- `docs/project-summary.md`
+
 ## Current Scope
 
 This scaffold intentionally focuses on Phase 1 foundations:
@@ -41,24 +61,3 @@ It does not yet implement:
 - broker adapters
 - portfolio math
 - grounding or eval harness
-
-## Quick Start
-
-```bash
-cargo run --manifest-path core/Cargo.toml -p leviathan-cli
-python3 intelligence/src/leviathan_ai/service.py
-```
-
-## Verification
-```bash
-cargo run --manifest-path core/Cargo.toml -p leviathan-cli
-cargo test --manifest-path core/Cargo.toml
-python3 intelligence/src/leviathan_ai/service.py
-```
-
-
-## Source Documents
-
-- `leviathan_final_blueprint_v1.html`
-- `leviathan_implementation_plan.html`
-- `docs/project-summary.md`
