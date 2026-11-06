@@ -43,7 +43,7 @@ It then evaluates whether that goal is realistic, builds a risk budget for the c
 - SQLite: operational store
 - Shared schemas: generated from Rust contracts and consumed read-only from Python
 
-## Phase Priorities Reflected In This Scaffold
+## Phase Priorities Reflected In This Scaffold (updated)
 
 - Phase 1: core workspace boundaries
 - Phase 2: placeholders for research and screening boundaries
